@@ -8,7 +8,7 @@ My course work about a basic binary exploitation.
 - [ELF and its key things]
   * [ELF format]
   * [Features of ELF]
-- [Common vulnerabilities types]
+- [Vulnerabilities types]
   * [Buffer overflow] 
   * [Stack overflow]
     * [Jump to arbitrary address]
