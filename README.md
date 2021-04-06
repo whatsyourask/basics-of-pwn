@@ -5,7 +5,7 @@ My course work about a basic binary exploitation.
 
 ## <b>Table of Contents</b>
 
-- [Memory organization of the executable files]
+- [Memory layout of the process](content/memory-layout.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/memory-layout.md")
 - [ELF and its key things]
   * [ELF format]
   * [Features of ELF]
