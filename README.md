@@ -1,4 +1,5 @@
-# basic-pwn
+# basics-of-pwn
+
 My course work about a basic binary exploitation.
 
 ![pwn-structure](images/pwn-structure.png "https://github.com/whatsyourask/basics-of-pwn/blob/main/images/pwn-structure.png")
