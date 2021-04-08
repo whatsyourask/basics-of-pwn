@@ -7,11 +7,12 @@ My course work about a basic binary exploitation.
 ## <b>Table of Contents</b>
 
 - [Memory layout of the process](content/memory-layout.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/memory-layout.md")
-- [ELF and its key things]
-  * [ELF format]
+- [ELF and its key things](content/elf.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/elf.md")
+  * [ELF format](content/elf.md#elf-format "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/elf.md#elf-format")
   * [Features of ELF]
 - [Vulnerabilities types]
   * [Buffer overflow]
+    * [Structure within the stack]
   * [Stack overflow]
     * [Jump to arbitrary address]
     * [Shellcode writing]
