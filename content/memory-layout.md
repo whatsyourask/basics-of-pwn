@@ -8,7 +8,7 @@ This is the memory view of the process.
 
 ### Stack
 
-The stack stores the variables that were added as arguments, and created during the execution of a function. The stack grows from the higher memory addresses to the lower memory addresses.
+The stack stores the variables that were added as arguments and created during the execution of a function. The stack grows from the higher memory addresses to the lower memory addresses.
 
 ```C
 void some_func(int arg1){
@@ -23,7 +23,7 @@ The process loads the shared libraries used by executable in the shared memory. 
 
 ### Heap
 
-The heap stores the variables that were dynamically allocated with *alloc family of functions. For object oriented programming languages the heap also stores the objects. The heap grows from the lower memory addresses to the higher memory addresses which is opposite to stack.
+The heap stores the variables that were dynamically allocated with the *alloc family of functions. For object-oriented programming languages, the heap also stores the objects. The heap grows from the lower memory addresses to the higher memory addresses which are opposite to the stack.
 
 ```C
 int *arr;
@@ -43,7 +43,7 @@ short arr[12];
 
 ### Initialized data
 
-This sections stores the variables that were declared and initialized.
+This section stores the variables that were declared and initialized.
 
 ```C
 int ind = 0;
@@ -73,7 +73,7 @@ gcc example.c -o example -m32
 objdump -d -M intel example
 ```
 
-Text section of main function:
+The text section of the main function:
 
 ```
 00001199 <main>:
