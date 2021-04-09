@@ -5,6 +5,8 @@ So, you need to understand what ELF format is.
 
 ## ELF format
 
+ELF is a format commonly used by Unix systems.
+
 ![elf-format](../images/elf.png "https://github.com/whatsyourask/basics-of-pwn/blob/main/images/elf.png")
 
 This is an image from Wikipedia, but it shows a great picture of ELF.
@@ -14,13 +16,7 @@ So, the image shows that you have a simple.arm file. It has three main sections.
 
 ### ELF Header
 
-The ELF header is 32 bytes long.
-
-It identifies the format of the file.
-
-It starts with a sequence of four unique values: 0x7f, 0x45, 0x4c, 0x46. Which is just an ELF word.
-
-The header also indicates whether the file is a 32-bit format or 64-bit, little-endian or big-endian, ELF version, OS version for which executable was compiled.
+The ELF header is 32 bytes long. It identifies the format of the file. It starts with a sequence of four unique values: 0x7f, 0x45, 0x4c, 0x46. Which is just an ELF word.  The header also indicates whether the file is a 32-bit format or 64-bit, little-endian or big-endian, ELF version, OS version for which executable was compiled.
 
 `readelf -h /bin/bash` will show you the ELF header.
 
@@ -182,3 +178,87 @@ Key to Flags:
   C (compressed), x (unknown), o (OS specific), E (exclude),
   l (large), p (processor specific)
 ```
+
+## ELF features
+
+This is where you will understand the key things you need to do binary exploitation.
+
+### Base Address
+
+For accuracy, I took it from the [here](https://refspecs.linuxbase.org/elf/elf.pdf "https://refspecs.linuxbase.org/elf/elf.pdf").
+
+The virtual addresses in the program headers might not represent the actual virtual addresses of the program's memory image. The system chooses virtual addresses for individual processes, it maintains the segments’ relative positions. Because position-independent code uses relative addressing between segments, the difference between virtual addresses in memory must match the difference between virtual addresses in the file.
+
+Thus, the base address for a process is a single constant value that represents the difference between the virtual addresses in memory and the virtual addresses in the file.
+
+### Global Offset Table
+
+Position-independent code cannot contain absolute virtual addresses. Global Offset Table holds the absolute addresses. The program uses a position independent address to access the GOT (Global Offset Table). The GOT then gives the program an absolute address.
+
+Consider we have the following program:
+
+```C
+#include <stdio.h>
+
+int main(int argc, char *argv[]){
+  printf("Hello, World!");
+}
+```
+
+In bash, compile it and run gdb. (I use [gef](https://gef.readthedocs.io/en/master/ "https://gef.readthedocs.io/en/master/")).
+
+```bash
+gcc hello.c -o hello
+gdb -q hello
+b *main + 38
+r
+got
+```
+Result:
+
+```bash
+gef➤  got
+
+GOT protection: Partial RelRO | GOT functions: 2
+
+[0x5655900c] printf@GLIBC_2.0  →  0x56556036
+[0x56559010] __libc_start_main@GLIBC_2.0  →  0xf7df1a50
+gef➤  
+```
+
+Here, you can see that the printf address is mapped to the actual printf address in libc.
+
+### Segments permissions
+
+Each segment has permission: read, write, execute, as always.
+
+For example, do this in gef:
+
+```bash
+gef➤  vmmap
+[ Legend:  Code | Heap | Stack ]
+Start      End        Offset     Perm Path
+0x56555000 0x56556000 0x00000000 r-- /home/zero/hello
+0x56556000 0x56557000 0x00001000 r-x /home/zero/hello
+0x56557000 0x56558000 0x00002000 r-- /home/zero/hello
+0x56558000 0x56559000 0x00002000 r-- /home/zero/hello
+0x56559000 0x5655a000 0x00003000 rw- /home/zero/hello
+0xf7dd7000 0xf7df0000 0x00000000 r-- /usr/lib32/libc-2.28.so
+0xf7df0000 0xf7f3e000 0x00019000 r-x /usr/lib32/libc-2.28.so
+0xf7f3e000 0xf7fae000 0x00167000 r-- /usr/lib32/libc-2.28.so
+0xf7fae000 0xf7faf000 0x001d7000 --- /usr/lib32/libc-2.28.so
+0xf7faf000 0xf7fb1000 0x001d7000 r-- /usr/lib32/libc-2.28.so
+0xf7fb1000 0xf7fb2000 0x001d9000 rw- /usr/lib32/libc-2.28.so
+0xf7fb2000 0xf7fb5000 0x00000000 rw-
+0xf7fcd000 0xf7fcf000 0x00000000 rw-
+0xf7fcf000 0xf7fd2000 0x00000000 r-- [vvar]
+0xf7fd2000 0xf7fd4000 0x00000000 r-x [vdso]
+0xf7fd4000 0xf7fd5000 0x00000000 r-- /usr/lib32/ld-2.28.so
+0xf7fd5000 0xf7ff1000 0x00001000 r-x /usr/lib32/ld-2.28.so
+0xf7ff1000 0xf7ffb000 0x0001d000 r-- /usr/lib32/ld-2.28.so
+0xf7ffc000 0xf7ffd000 0x00027000 r-- /usr/lib32/ld-2.28.so
+0xf7ffd000 0xf7ffe000 0x00028000 rw- /usr/lib32/ld-2.28.so
+0xfffdd000 0xffffe000 0x00000000 rw- [stack]
+```
+
+You see that stack, for instance, has read-write permissions.
