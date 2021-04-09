@@ -28,3 +28,4 @@ My course work about a basic binary exploitation.
   * [Address Space Layout Randomization(ASLR)]
   * [Stack canary]
   * [Position Independent Executable(PIE)]
+  * [Relocation Read-Only]
