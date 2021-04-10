@@ -11,8 +11,9 @@ My course work about a basic binary exploitation.
   * [ELF format](content/elf.md#elf-format "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/elf.md#elf-format")
   * [Features of ELF](content/elf.md#elf-features "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/elf.md#elf-features")
 - [Vulnerabilities types](content/vulnerabilities.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/vulnerabilities.md")
-  * [Buffer overflow]
-    * [Structure within the stack]
+  * [Buffer overflow](content/buffer-overflow/buffer-overflow.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md")
+    * [Structure within the stack](content/buffer-overflow/buffer-overflow.md#structure-within-the-stack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md#structure-within-the-stack")
+    * [Exploitation]
   * [Stack overflow]
     * [Jump to arbitrary address]
     * [Shellcode writing]
