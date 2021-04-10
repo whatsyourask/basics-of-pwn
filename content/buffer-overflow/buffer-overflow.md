@@ -45,38 +45,39 @@ Let's take a look at the assembly instructions within main:
 ```bash
 gef➤  disas main
 Dump of assembler code for function main:
-   0x0000120c <+0>:	lea    ecx,[esp+0x4]
-   0x00001210 <+4>:	and    esp,0xfffffff0
-   0x00001213 <+7>:	push   DWORD PTR [ecx-0x4]
-   0x00001216 <+10>:	push   ebp
-   0x00001217 <+11>:	mov    ebp,esp
-   0x00001219 <+13>:	push   ecx
-   0x0000121a <+14>:	sub    esp,0x24
-   0x0000121d <+17>:	call   0x127e <__x86.get_pc_thunk.ax>
-   0x00001222 <+22>:	add    eax,0x2dde
-   0x00001227 <+27>:	mov    DWORD PTR [ebp-0xc],0x1
-   0x0000122e <+34>:	mov    DWORD PTR [ebp-0x10],0x2
-   0x00001235 <+41>:	mov    DWORD PTR [ebp-0x14],0x3
-   0x0000123c <+48>:	mov    DWORD PTR [ebp-0x18],0x4
-   0x00001243 <+55>:	mov    DWORD PTR [ebp-0x1c],0x5
-   0x0000124a <+62>:	mov    DWORD PTR [ebp-0x20],0x6
-   0x00001251 <+69>:	sub    esp,0x8
-   0x00001254 <+72>:	push   DWORD PTR [ebp-0x20]
-   0x00001257 <+75>:	push   DWORD PTR [ebp-0x1c]
-   0x0000125a <+78>:	push   DWORD PTR [ebp-0x18]
-   0x0000125d <+81>:	push   DWORD PTR [ebp-0x14]
-   0x00001260 <+84>:	push   DWORD PTR [ebp-0x10]
-   0x00001263 <+87>:	push   DWORD PTR [ebp-0xc]
-   0x00001266 <+90>:	call   0x1189 <some_func1>
-   0x0000126b <+95>:	add    esp,0x20
-   0x0000126e <+98>:	mov    DWORD PTR [ebp-0x24],eax
-   0x00001271 <+101>:	mov    eax,0x0
-   0x00001276 <+106>:	mov    ecx,DWORD PTR [ebp-0x4]
-   0x00001279 <+109>:	leave  
-   0x0000127a <+110>:	lea    esp,[ecx-0x4]
-   0x0000127d <+113>:	ret    
+   0x5655620c <+0>:	lea    ecx,[esp+0x4]
+   0x56556210 <+4>:	and    esp,0xfffffff0
+   0x56556213 <+7>:	push   DWORD PTR [ecx-0x4]
+   0x56556216 <+10>:	push   ebp
+   0x56556217 <+11>:	mov    ebp,esp
+   0x56556219 <+13>:	push   ecx
+   0x5655621a <+14>:	sub    esp,0x24
+   0x5655621d <+17>:	call   0x5655627e <__x86.get_pc_thunk.ax>
+   0x56556222 <+22>:	add    eax,0x2dde
+   0x56556227 <+27>:	mov    DWORD PTR [ebp-0xc],0x1
+   0x5655622e <+34>:	mov    DWORD PTR [ebp-0x10],0x2
+   0x56556235 <+41>:	mov    DWORD PTR [ebp-0x14],0x3
+   0x5655623c <+48>:	mov    DWORD PTR [ebp-0x18],0x4
+   0x56556243 <+55>:	mov    DWORD PTR [ebp-0x1c],0x5
+   0x5655624a <+62>:	mov    DWORD PTR [ebp-0x20],0x6
+   0x56556251 <+69>:	sub    esp,0x8
+   0x56556254 <+72>:	push   DWORD PTR [ebp-0x20]
+   0x56556257 <+75>:	push   DWORD PTR [ebp-0x1c]
+   0x5655625a <+78>:	push   DWORD PTR [ebp-0x18]
+   0x5655625d <+81>:	push   DWORD PTR [ebp-0x14]
+   0x56556260 <+84>:	push   DWORD PTR [ebp-0x10]
+   0x56556263 <+87>:	push   DWORD PTR [ebp-0xc]
+   0x56556266 <+90>:	call   0x56556189 <some_func1>
+   0x5655626b <+95>:	add    esp,0x20
+   0x5655626e <+98>:	mov    DWORD PTR [ebp-0x24],eax
+   0x56556271 <+101>:	mov    eax,0x0
+   0x56556276 <+106>:	mov    ecx,DWORD PTR [ebp-0x4]
+   0x56556279 <+109>:	leave  
+   0x5655627a <+110>:	lea    esp,[ecx-0x4]
+   0x5655627d <+113>:	ret    
 End of assembler dump.
-gef➤
+gef➤  
+
 ```
 
 You can see that here we are pushing 1, 2, 3, 4, 5, 6 onto the stack at ebp - some offset. `ebp` is just a base pointer that is placed at the bottom of the stack portion of the currently called function.
@@ -101,4 +102,4 @@ gef➤  x/50wx $ebp
 0xffffd298:	0xf7fe4520	0x56559000
 ```
 
-At the address of `0xffffd1d8` - `0xffffd1e8` you can see our values 1, 2, 3, 4, 5, 6. But before them...
+At the address of `0xffffd1d8` - `0xffffd1e8` you can see our values 1, 2, 3, 4, 5, 6. But before them you can see the address `0x5655626b` which is just the address of the next assembly instruction after `some_func1` call. This is a return address, and the `ret` instruction will take it and place it in `eip` register which holds the address of the next instruction to execute.
