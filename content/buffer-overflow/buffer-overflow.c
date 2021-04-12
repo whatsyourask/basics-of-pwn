@@ -8,6 +8,7 @@ int main(int argc, char *argv[]){
   // vulnerable
   gets(vuln_buff);
   if (access == 1234){
+    setuid(0);
     system("/bin/sh");
   }
   return 0;
