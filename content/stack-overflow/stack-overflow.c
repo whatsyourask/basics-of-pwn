@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <string.h>
 
-// gcc stack-overflow.c -o stack-overflow -fno-stack-protector
+// gcc stack-overflow.c -o stack-overflow -fno-stack-protector -no-pie
 
 // Function that sets user id to 0 and execute the shell
 void shell(){
@@ -9,9 +9,13 @@ void shell(){
   system("/bin/sh");
 }
 
-int main(int argc, char *argv[]){
+void vuln_func(){
   char vuln_buff[250];
   // vulnerable
-  strcpy(vuln_buff, argv[1]);
+  gets(vuln_buff);
+}
+
+int main(int argc, char *argv[]){
+  vuln_func();
   return 0;
 }
