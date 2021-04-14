@@ -15,7 +15,7 @@ My course work about a basic binary exploitation.
     * [Structure within the stack](content/buffer-overflow/buffer-overflow.md#structure-within-the-stack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md#structure-within-the-stack")
     * [Exploitation](content/buffer-overflow/buffer-overflow.md#exploitation "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md#exploitation")
   * [Stack overflow](content/stack-overflow/stack-overflow.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md")
-    * [Jump to arbitrary address](content/stack-overflow/stack-overflow.md#jump-to-arbitrary-address "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#jump-to-arbitrary-address")
+    * [Jump to an arbitrary address](content/stack-overflow/stack-overflow.md#jump-to-an-arbitrary-address "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#jump-to-an-arbitrary-address")
     * [Shellcode writing]
     * [NOP chain]
     * [Easy exploit of the stack overflow with python pwntools module]
