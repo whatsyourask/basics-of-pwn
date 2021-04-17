@@ -47,3 +47,7 @@ My course work about basic binary exploitation.
 
 * [docs](https://gef.readthedocs.io/en/master/ "https://gef.readthedocs.io/en/master/")
 * [repo](https://github.com/hugsy/gef "https://github.com/hugsy/gef")
+
+### gdb
+
+* [unset environement](https://stackoverflow.com/questions/55593045/how-to-set-environment-variable-within-gdb-using-shell-command)
