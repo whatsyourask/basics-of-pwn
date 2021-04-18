@@ -17,8 +17,8 @@ My course work about basic binary exploitation.
   * [Stack overflow](content/stack-overflow/stack-overflow.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md")
     * [Jump to an arbitrary address](content/stack-overflow/stack-overflow.md#jump-to-an-arbitrary-address "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#jump-to-an-arbitrary-address")
     * [Shellcode writing](content/stack-overflow/stack-overflow.md#shellcode-writing "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#shellcode-writing")
-    * [NOP chain]
-    * [Easy exploit of the stack overflow with python pwntools module]
+    * [NOP chain](content/stack-overflow/stack-overflow.md#nop-chain "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#nop-chain")
+    * [pwntools](content/stack-overflow/stack-overflow.md#pwntools "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#pwntools")
   * [Format string vulnerabilities]
     * [Format string specifiers]
     * [Read arbitrary data]
