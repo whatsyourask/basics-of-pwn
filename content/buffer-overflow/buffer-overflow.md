@@ -102,7 +102,7 @@ gef➤  x/50wx $ebp
 0xffffd298:	0xf7fe4520	0x56559000
 ```
 
-At the address of `0xffffd1d8` - `0xffffd1e8` you can see our values 1, 2, 3, 4, 5, 6. But before them you can see the address `0x5655626b` which is just the address of the next assembly instruction after `some_func1` call. This is a return address, and the `ret` instruction will take it and place it in `eip` register which holds the address of the next instruction to execute.
+At the address of `0xffffd1d8` - `0xffffd1e8` you can see our values 1, 2, 3, 4, 5, 6. But before them, you can see the address `0x5655626b` which is just the address of the next assembly instruction after `some_func1` call. This is a return address, and the `ret` instruction will take it and place it in `eip` register which holds the address of the next instruction to execute.
 
 ## Exploitation
 
@@ -156,3 +156,103 @@ So, your final exploit:
 ```
 
 And you will get a shell, but you will be you, not the other user or root. Yeah, in this kind of program, the vulnerability is useless for an attacker, but if it has a `suid` bit set(`chmod ug+s buffer-overflow` as another user), he can get a root or another user privilege. But, if a program with some network interactions has this vulnerability, then the attacker can get Remote Code Execution or RCE, even if the program doesn't have a suid on the root or other user. Also, the main reason for RCE here is the condition which gives a shell, but even so, this vulnerability opens a thread to further exploitation.
+
+## Vulnerable code
+
+### gets
+
+```C
+#include <stdio.h>
+
+int main(){
+  char buff[125];
+  gets(buff);
+}
+```
+
+`gets` doesn't check the buffer overflow or the length of the input.
+
+### scanf
+
+```C
+#include <stdio.h>
+
+int main(){
+  char buff[133];
+  scanf("%s", buff);
+}
+```
+
+`scanf` doesn't check the buffer overflow.
+
+## sprintf
+
+```C
+#include <stdio.h>
+
+int main(int argc, char *argv[]){
+  char buff[123];
+  sprintf(buff, "The user entered: %s", argv[1]);
+}
+```
+
+`sprintf` doesn't check the buffer overflow.
+
+### strcpy
+
+```C
+#include <string.h>
+
+int main(int argc, char *argv[]){
+  char buff[132];
+  strcpy(buff, argv[1]);
+}
+```
+
+`strcpy` doesn't check the buffer overflow.
+
+### strcmp
+
+```C
+#include <string.h>
+
+int main(int argc, char *argv[]){
+  const char password = "P@ssw0rd1";
+  size_t res = strcmp(password, argv[1]);
+}
+```
+
+`strcmp` doesn't check the buffer overflow.
+
+### strcat
+
+```C
+#include <string.h>
+
+int main(int argc, char *argv[]){
+  char buff[77];
+  strcpy(buff, argv[1]);
+  strcat(buff[77], argv[2]);
+}
+```
+
+`strcat` doesn't check the buffer overflow.
+
+### read
+
+```C
+#include <stdio.h>
+
+int main(){
+  char buff[50];
+  read(1, buff, 75);
+}
+```
+
+Here, the function `read` has a parameter to specify the length of the input to take, but if you'll do the mistake with this length, this case will be the vulnerability.
+
+### Functions to use instead
+
+* scanf, gets, sprintf - fgets
+
+* strcmp, strcat, strcpy - strncmp, strncat, strncmp

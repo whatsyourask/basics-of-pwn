@@ -14,6 +14,7 @@ My course work about basic binary exploitation.
   * [Buffer overflow](content/buffer-overflow/buffer-overflow.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md")
     * [Structure within the stack](content/buffer-overflow/buffer-overflow.md#structure-within-the-stack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md#structure-within-the-stack")
     * [Exploitation](content/buffer-overflow/buffer-overflow.md#exploitation "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md#exploitation")
+    * [Vulnerable code](content/buffer-overflow/buffer-overflow.md#vulnerable-code "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/buffer-overflow/buffer-overflow.md#vulnerable-code")
   * [Stack overflow](content/stack-overflow/stack-overflow.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md")
     * [Jump to an arbitrary address](content/stack-overflow/stack-overflow.md#jump-to-an-arbitrary-address "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#jump-to-an-arbitrary-address")
     * [Shellcode writing](content/stack-overflow/stack-overflow.md#shellcode-writing "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#shellcode-writing")
