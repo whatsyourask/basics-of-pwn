@@ -52,3 +52,8 @@ My course work about basic binary exploitation.
 ### gdb
 
 * [unset environement](https://stackoverflow.com/questions/55593045/how-to-set-environment-variable-within-gdb-using-shell-command)
+
+### pwntools
+
+* [docs](https://docs.pwntools.com/en/latest/ "https://docs.pwntools.com/en/latest/")
+* [repo](https://github.com/Gallopsled/pwntools "https://github.com/Gallopsled/pwntools")
