@@ -20,7 +20,8 @@ My course work about basic binary exploitation.
     * [Shellcode writing](content/stack-overflow/stack-overflow.md#shellcode-writing "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#shellcode-writing")
     * [NOP chain](content/stack-overflow/stack-overflow.md#nop-chain "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#nop-chain")
     * [pwntools](content/stack-overflow/stack-overflow.md#pwntools "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#pwntools")
-  * [Format string vulnerabilities]
+  * [Format string vulnerability](content/format-string/format-string.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md")
+    * [View vulnerability](content/format-string/format-string.md#view-vulnerability "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#view-vulnerability")
     * [Format string specifiers]
     * [Read arbitrary data]
     * [Exploitation]
