@@ -22,7 +22,7 @@ My course work about basic binary exploitation.
     * [pwntools](content/stack-overflow/stack-overflow.md#pwntools "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/stack-overflow/stack-overflow.md#pwntools")
   * [Format string vulnerability](content/format-string/format-string.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md")
     * [View vulnerability](content/format-string/format-string.md#view-vulnerability "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#view-vulnerability")
-    * [Format string specifiers]
+    * [Format string specifiers](content/format-string/format-string.md#format-string-specifiers "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#format-string-specifiers")
     * [Read arbitrary data]
     * [Exploitation]
   * [Heap overflow]
@@ -58,3 +58,7 @@ My course work about basic binary exploitation.
 
 * [docs](https://docs.pwntools.com/en/latest/ "https://docs.pwntools.com/en/latest/")
 * [repo](https://github.com/Gallopsled/pwntools "https://github.com/Gallopsled/pwntools")
+
+### Format string
+
+* [stanford pdf](https://crypto.stanford.edu/cs155old/cs155-spring08/papers/formatstring-1.2.pdf "https://crypto.stanford.edu/cs155old/cs155-spring08/papers/formatstring-1.2.pdf")
