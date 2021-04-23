@@ -12,7 +12,7 @@
   mov ebx, esp
 ; push zero
   push eax
-; push address of the string
+; push the address of the string
   push ebx
 ; move the second argument (argv array) to ecx
   mov ecx, esp

