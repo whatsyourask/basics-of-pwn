@@ -23,7 +23,7 @@ My course work about basic binary exploitation.
   * [Format string vulnerability](content/format-string/format-string.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md")
     * [View vulnerability](content/format-string/format-string.md#view-vulnerability "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#view-vulnerability")
     * [Format string specifiers](content/format-string/format-string.md#format-string-specifiers "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#format-string-specifiers")
-    * [Read arbitrary data]
+    * [Read arbitrary data](content/format-string/format-string.md#read-arbitrary-data "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#read-arbitrary-data")
     * [Exploitation]
   * [Heap overflow]
 - [Security techniques]

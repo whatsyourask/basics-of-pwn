@@ -9,7 +9,7 @@ int main(int argc, char *argv[]){
   const char *deny = "Access denied.\n";
   char buff[200];
   read(1, buff, 200);
-  if (strncmp("password", buff, 9)) {
+  if (strncmp("password\0", buff, 9) == 0) {
     printf(allow);
     system("/bin/sh");
   } else {

