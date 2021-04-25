@@ -333,7 +333,7 @@ void main(){
 
 `test-dirty-shellcode` and `test-clean-shellcode` don't need to be executable, they execute with `Segmentation fault` stuff.
 
-### Use the shellcode to exploit the vulnerability
+## Exploitation
 
 We have a completed shellcode, let's use it. But first, recompile the program with the parameters: `gcc stack-overflow.c -o stack-overflow -fno-stack-protector -no-pie -z execstack -m32` to make stack executable.
 
