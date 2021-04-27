@@ -65,3 +65,7 @@ My course work about basic binary exploitation.
 ### Format string
 
 * [stanford pdf](https://crypto.stanford.edu/cs155old/cs155-spring08/papers/formatstring-1.2.pdf "https://crypto.stanford.edu/cs155old/cs155-spring08/papers/formatstring-1.2.pdf")
+
+### Shellcode
+
+* [shellcode database](http://shell-storm.org/shellcode/ "http://shell-storm.org/shellcode/")
