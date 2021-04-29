@@ -28,6 +28,7 @@ My course work about basic binary exploitation.
     * [Jump to an arbitrary address](content/format-string/format-string.md#jump-to-an-arbitrary-data "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#jump-to-an-arbitrary-data")
     * [Writing in several stages](content/format-string/format-string.md#writing-in-several-stages "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#writing-in-several-stages")
     * [Exploitation](content/format-string/format-string.md#exploitation "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#exploitation")
+    * [What else can you overwrite with a format string](content/format-string/format-string.md#what-else-can-you-overwrite-with-a-format-string "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#what-else-can-you-overwrite-with-a-format-string")
   * [Heap overflow]
 - [Security techniques]
   * [Non-Executable Stack(NX)]
