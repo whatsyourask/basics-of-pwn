@@ -54,7 +54,7 @@ This section shows you the segments at run-time. Also, it tells the system how t
 Example:
 
 ```
-Elf file type is DYN (Shared object file)
+The elf file type is DYN (Shared object file)
 Entry point 0x2f630
 There are 11 program headers, starting at offset 64
 
@@ -185,7 +185,7 @@ This is where you will understand the key things you need to do binary exploitat
 
 ### Base Address
 
-For accuracy, I took it from the [here](https://refspecs.linuxbase.org/elf/elf.pdf "https://refspecs.linuxbase.org/elf/elf.pdf").
+For accuracy, I took it from [here](https://refspecs.linuxbase.org/elf/elf.pdf "https://refspecs.linuxbase.org/elf/elf.pdf").
 
 The virtual addresses in the program headers might not represent the actual virtual addresses of the program's memory image. The system chooses virtual addresses for individual processes, it maintains the segments’ relative positions. Because position-independent code uses relative addressing between segments, the difference between virtual addresses in memory must match the difference between virtual addresses in the file.
 
