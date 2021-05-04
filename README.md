@@ -31,7 +31,7 @@ My course work about basic binary exploitation.
     * [What else can you overwrite with a format string](content/format-string/format-string.md#what-else-can-you-overwrite-with-a-format-string "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/format-string/format-string.md#what-else-can-you-overwrite-with-a-format-string")
   * [Heap overflow]
 - [Security techniques](content/security-techniques/security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md")
-  * [Non-Executable Stack(NX)](content/security-techniques/security-techniques.md#non-executable-stack(NX) "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md")
+  * [Non-Executable Stack(NX)](content/security-techniques/security-techniques.md#non-executable-stacknx "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#non-executable-stacknx")
   * [Address Space Layout Randomization(ASLR)]
   * [Stack canary]
   * [Position Independent Executable(PIE)]
