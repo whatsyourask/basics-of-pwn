@@ -36,7 +36,7 @@ My course work about basic binary exploitation.
   * [Stack canary]
   * [Position Independent Executable(PIE)]
   * [Relocation Read-Only]
-- [Bypass security techniques](content/bypass-security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques.md")
+- [Bypass security techniques](content/bypass-security-techniques/bypass-security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md")
   * [ret2libc](content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack")
 
 ## Resources
