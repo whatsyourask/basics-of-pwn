@@ -128,4 +128,4 @@ Start      End        Offset     Perm Path
 
 Even, if you will jump to the right address the program will not execute it, because you can see that the stack hasn't an X flag.
 
-But, it doesn't mean that you can't exploit it now. You can apply two exploitation techniques here: [Return to libc attack(ret2libc)](../bypass-security-techniques.md#return-to-libc-attack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques.md#return-to-libc-attack") and `Return-Oriented programming(ROP)`.
+But, it doesn't mean that you can't exploit it now. You can apply two exploitation techniques here: [Return to libc attack(ret2libc)](../bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack") and `Return-Oriented programming(ROP)`.
