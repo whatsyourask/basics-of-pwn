@@ -32,7 +32,7 @@ My course work about basic binary exploitation.
   * [Heap overflow]
 - [Security techniques](content/security-techniques/security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md")
   * [Non-Executable Stack(NX)](content/security-techniques/security-techniques.md#non-executable-stacknx "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#non-executable-stacknx")
-  * [Address Space Layout Randomization(ASLR)]
+  * [Address Space Layout Randomization(ASLR)](content/security-techniques/security-techniques.md#address-space-layout-randomizationaslr "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#address-space-layout-randomizationaslr")
   * [Stack canary]
   * [Position Independent Executable(PIE)]
   * [Relocation Read-Only]
