@@ -4,7 +4,7 @@ Security techniques were invented to prevent exploitation of the programs. Each 
 
 ## Non-Executable Stack(NX)
 
-Prevents the attacker from jumping to the shellcode within the stack. I disabled it before with an option of the compiler: `-z execstack`. Thus, it makes the stack executable or, in other words, it allows you to execute the content of the stack.
+Prevents the attacker from jumping to the shellcode within the stack by disabling execution of the stack. I disabled it before with an option of the compiler: `-z execstack`. Thus, it makes the stack executable or, in other words, it allows you to execute the content of the stack.
 
 Let's try our stack-overflow exploit that we did before.
 
@@ -129,3 +129,6 @@ Start      End        Offset     Perm Path
 Even, if you will jump to the right address the program will not execute it, because you can see that the stack hasn't an X flag.
 
 But, it doesn't mean that you can't exploit it now. You can apply two exploitation techniques here: [Return to libc attack(ret2libc)](../bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack") and `Return-Oriented programming(ROP)`.
+
+
+## Address Space Layout Randomization(ASLR)
