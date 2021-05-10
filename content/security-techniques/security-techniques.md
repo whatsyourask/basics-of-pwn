@@ -4,7 +4,7 @@ Security techniques were invented to prevent exploitation of the programs. Each 
 
 ## Non-Executable Stack(NX)
 
-Prevents the attacker from jumping to the shellcode within the stack by disabling execution of the stack. I disabled it before with an option of the compiler: `-z execstack`. Thus, it makes the stack executable or, in other words, it allows you to execute the content of the stack.
+Prevents the attacker from jumping to the shellcode within the stack by disabling the execution of the stack. I disabled it before with an option of the compiler: `-z execstack`. Thus, it makes the stack executable or, in other words, it allows you to execute the content of the stack.
 
 Let's try our stack-overflow exploit that we did before.
 
@@ -133,9 +133,9 @@ But, it doesn't mean that you can't exploit it now. You can apply two exploitati
 
 ## Address Space Layout Randomization(ASLR)
 
-Prevents the attacker from jumping to the shellcode wherever by randomize the address space of a process. So, if you want to jump to concrete address, for example, `0xffffcfdd`, you can't do it directly, because every time you execute the program, its address space changes. I disabled it before with `echo "0" | sudo dd of=/proc/sys/kernel/randomize_va_space`. Also, it makes difficult to use `ret2libc attack`, because in this attack, you need to locate needed functions and with ASLR they will have random addresses.  
+Prevents the attacker from jumping to the shellcode wherever by randomize the address space of a process. So, if you want to jump to a concrete address, for example, `0xffffcfdd`, you can't do it directly, because every time you execute the program, its address space changes. I disabled it before with `echo "0" | sudo dd of=/proc/sys/kernel/randomize_va_space`. Also, it makes it difficult to use `ret2libc attack`, because in this attack, you need to locate needed functions and with ASLR they will have random addresses.  
 
-Let's again try stack-overflow exploit.
+Let's again try the stack-overflow exploit.
 
 ```bash
 $ sudo cat /proc/sys/kernel/randomize_va_space              
@@ -214,4 +214,4 @@ gets(0xffaa85f6, 0xffaa8630, 3, 0x8049224)                         = 0xffaa85f6
 w
 ```
 
-Each time I run the program ltrace showed different address. python script with ret2libc attack won't work too.
+Each time I run the program ltrace showed a different address. python script with [ret2libc](../bypass-security-techniques/ret2libc-attack.py) attack won't work too. But ASLR can be evaded with the next method: place a large nop-chain with shellcode in the env variable and then jump to it. Of course, you must have the access to env variable and, also, you must check that the env variables will not be cleaned. You need a large payload here to increase the probability of jumping to your shellcode.
