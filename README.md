@@ -33,7 +33,7 @@ My course work about basic binary exploitation.
 - [Security techniques](content/security-techniques/security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md")
   * [Non-Executable Stack(NX)](content/security-techniques/security-techniques.md#non-executable-stacknx "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#non-executable-stacknx")
   * [Address Space Layout Randomization(ASLR)](content/security-techniques/security-techniques.md#address-space-layout-randomizationaslr "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#address-space-layout-randomizationaslr")
-  * [Stack canary]
+  * [Stack canary](content/security-techniques/security-techniques.md#stack-canary "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#stack-canary")
   * [Position Independent Executable(PIE)]
   * [Relocation Read-Only]
 - [Bypass security techniques](content/bypass-security-techniques/bypass-security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md")
