@@ -277,3 +277,5 @@ There are two methods to bypass stack canary: leak the canary and brute-force it
 This is possible if you have some vulnerable code that allows you to read the memory of the stack and see it in output. So, for example, you will have the format string vulnerability and with it, you leak the canary which you then use in your exploit and bypass this protection(Actually, here, there is no way to do a nice exploit without using pwntools. It is too hard to deal with output and so on...)
 
 ### Brute-force the canary
+
+The canary is placed at the start of the program. So, if it has a few forks and we can control input in them, then we can brute-force through them our canary.
