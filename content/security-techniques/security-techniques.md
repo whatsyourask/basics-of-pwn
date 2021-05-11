@@ -279,3 +279,7 @@ This is possible if you have some vulnerable code that allows you to read the me
 ### Brute-force the canary
 
 The canary is placed at the start of the program. So, if it has a few forks and we can control input in them, then we can brute-force through them our canary.
+
+## Position Independent Executable(PIE)
+
+This protection works by randomizing the address where to place the machine code and executing it with regardless of its absolute address. It uses GOT for accessing to all functions that are used in the program. Addresses in GOT also are not absolute. 
