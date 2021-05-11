@@ -72,3 +72,7 @@ My course work about basic binary exploitation.
 #### Shellcode
 
 * [shellcode database](http://shell-storm.org/shellcode/ "http://shell-storm.org/shellcode/")
+
+#### Stack canary
+
+* [stack canary](https://ctf101.org/binary-exploitation/stack-canaries/ "https://ctf101.org/binary-exploitation/stack-canaries/")
