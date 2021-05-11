@@ -33,8 +33,8 @@ My course work about basic binary exploitation.
 - [Security techniques](content/security-techniques/security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md")
   * [Non-Executable Stack(NX)](content/security-techniques/security-techniques.md#non-executable-stacknx "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#non-executable-stacknx")
   * [Address Space Layout Randomization(ASLR)](content/security-techniques/security-techniques.md#address-space-layout-randomizationaslr "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#address-space-layout-randomizationaslr")
-  * [Stack canary](content/security-techniques/security-techniques.md#stack-canary "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#stack-canary")
-  * [Position Independent Executable(PIE)]
+  * [Stack Canary](content/security-techniques/security-techniques.md#stack-canary "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#stack-canary")
+  * [Position Independent Executable(PIE)](content/security-techniques/security-techniques.md#position-independent-executablepie "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#position-independent-executablepie")
   * [Relocation Read-Only]
 - [Bypass security techniques](content/bypass-security-techniques/bypass-security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md")
   * [ret2libc](content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack")
