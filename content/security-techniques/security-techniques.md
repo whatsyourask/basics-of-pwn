@@ -214,7 +214,7 @@ gets(0xffaa85f6, 0xffaa8630, 3, 0x8049224)                         = 0xffaa85f6
 w
 ```
 
-Each time I run the program ltrace showed a different address. python script with [ret2libc](../bypass-security-techniques/ret2libc-attack.py) attack won't work too. But ASLR can be evaded with the next method: place a large nop-chain with shellcode in the env variable and then jump to it. Of course, you must have the access to env variable and, also, you must check that the env variables will not be cleaned. You need a large payload here to increase the probability of jumping to your shellcode.
+Each time I run the program ltrace showed a different address. python script with [ret2libc](../bypass-security-techniques/ret2libc-attack.py) attack won't work too. ASLR can be evaded with the next method: place a large nop-chain with shellcode in the env variable and then jump to it. Of course, you must have the access to env variable and, also, you must check that the env variables will not be cleaned. You need a large payload here to increase the probability of jumping to your shellcode. Also, you have another method through leaking the single address within the program. If you can do it, then you can calculate the offset from the non-random address and use it in future attacks.
 
 ## Stack canary
 
