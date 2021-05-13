@@ -2,7 +2,7 @@
 
 Here, you will learn new techniques to exploit the programs that contain security mechanisms.
 
-## Return to libc attack
+## Return-to-libc attack(ret2libc)
 
 This attack includes searching addresses of useful functions within libc.
 

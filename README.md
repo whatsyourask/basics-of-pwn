@@ -36,8 +36,10 @@ My course work about basic binary exploitation.
   * [Stack Canary](content/security-techniques/security-techniques.md#stack-canary "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#stack-canary")
   * [Position Independent Executable(PIE)](content/security-techniques/security-techniques.md#position-independent-executablepie "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#position-independent-executablepie")
   * [Relocation Read-Only(RELRO)](content/security-techniques/security-techniques.md#relocation-read-onlyrelro "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/security-techniques/security-techniques.md#relocation-read-onlyrelro")
+  * [All five in the action]
 - [Bypass security techniques](content/bypass-security-techniques/bypass-security-techniques.md "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md")
-  * [ret2libc](content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attack")
+  * [Return-to-libc(ret2libc)](content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attackret2libc "https://github.com/whatsyourask/basics-of-pwn/blob/main/content/bypass-security-techniques/bypass-security-techniques.md#return-to-libc-attackret2libc")
+  * [Return-oriented programming(ROP)]
 
 ## Resources
 
