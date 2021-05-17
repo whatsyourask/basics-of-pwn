@@ -7,8 +7,6 @@ int main(int argc, char *argv[]){
   int access = 4321;
   // vulnerable
   gets(vuln_buff);
-  if (strlen(vuln_buff) > 100):
-    exit(1);
   if (access == 1234){
     setuid(0);
     system("/bin/sh");
