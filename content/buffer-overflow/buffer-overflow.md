@@ -140,7 +140,7 @@ Line `+26` shows you that for some reasons, buffer size in machine code is 112 b
 
 ```bash
 gcc buf-overflow.c -o buffer-overflow -fno-stack-protector
-(python -c 'print "A"*112 + "\xdd\xdd"'; cat) | ./buffer-overflow
+(python -c 'print "A"*108 + "\xdd\xdd"'; cat) | ./buffer-overflow
 ```
 
 But, you don't get a shell, cause you overwrote the access variable with `0xdddd`. You can get it with what hex address it compares in the gdb:
@@ -152,7 +152,7 @@ But, you don't get a shell, cause you overwrote the access variable with `0xdddd
 So, your final exploit:
 
 ```bash
-(python -c 'print "A"*112 + "\xd2\x04"'; cat) | ./buffer-overflow
+(python -c 'print "A"*108 + "\xd2\x04"'; cat) | ./buffer-overflow
 ```
 
 And you will get a shell, but you will be you, not the other user or root. Yeah, in this kind of program, the vulnerability is useless for an attacker, but if it has a `suid` bit set(`chmod ug+s buffer-overflow` as another user), he can get a root or another user privilege. But, if a program with some network interactions has this vulnerability, then the attacker can get Remote Code Execution or RCE, even if the program doesn't have a suid on the root or other user. Also, the main reason for RCE here is the condition which gives a shell, but even so, this vulnerability opens a thread to further exploitation.
